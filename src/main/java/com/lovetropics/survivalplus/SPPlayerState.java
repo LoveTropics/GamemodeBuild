@@ -1,9 +1,16 @@
 package com.lovetropics.survivalplus;
 
+import com.lovetropics.survivalplus.message.SetSPEnabledMessage;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.network.PacketDistributor;
 
+@Mod.EventBusSubscriber(modid = SurvivalPlus.MODID)
 public final class SPPlayerState {
 	public static void setEnabled(PlayerEntity player, boolean enabled) {
 		CompoundNBT survivalPlus = getOrCreatePersistent(player, SurvivalPlus.MODID);
@@ -29,5 +36,14 @@ public final class SPPlayerState {
 		CompoundNBT compound = new CompoundNBT();
 		root.put(key, compound);
 		return compound;
+	}
+	
+	@SubscribeEvent
+	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+		PlayerEntity player = event.getPlayer();
+		if (!player.world.isRemote && player instanceof ServerPlayerEntity) {
+			SetSPEnabledMessage message = new SetSPEnabledMessage(isEnabled(player));
+			SurvivalPlus.NETWORK.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+		}
 	}
 }

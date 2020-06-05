@@ -55,10 +55,12 @@ public class SurvivalPlus {
 				.consumer(OpenSPInventoryMessage::handle)
 				.add();
 		
-		NETWORK.messageBuilder(SetSPEnabledMessage.class, 1, NetworkDirection.PLAY_TO_SERVER)
+		NETWORK.messageBuilder(SetSPEnabledMessage.class, 1)
 				.encoder(SetSPEnabledMessage::serialize).decoder(SetSPEnabledMessage::deserialize)
 				.consumer(SetSPEnabledMessage::handle)
 				.add();
+		
+		ArgumentTypes.register(SurvivalPlus.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
 	}
 	
 	private void doClientStuff(final FMLClientSetupEvent event) {
@@ -68,6 +70,5 @@ public class SurvivalPlus {
 	@SubscribeEvent
 	public void serverStarting(FMLServerStartingEvent event) {
 		SurvivalPlusCommand.register(event.getCommandDispatcher());
-		ArgumentTypes.register(SurvivalPlus.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
 	}
 }
