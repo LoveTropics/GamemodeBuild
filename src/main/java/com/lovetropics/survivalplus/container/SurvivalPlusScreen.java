@@ -1,7 +1,6 @@
 package com.lovetropics.survivalplus.container;
 
 import com.lovetropics.survivalplus.SurvivalPlus;
-import com.lovetropics.survivalplus.message.SetSPScrollMessage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -106,8 +105,6 @@ public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 		
 		int scrollOffset = Math.round(this.scrollAmount * this.container.scrollHeight());
 		this.container.setScrollOffset(scrollOffset);
-		
-		SurvivalPlus.NETWORK.sendToServer(new SetSPScrollMessage(scrollOffset));
 	}
 	
 	private Rect2i scrollRect() {

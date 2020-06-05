@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.lovetropics.survivalplus.SPConfigs;
 import com.lovetropics.survivalplus.SurvivalPlus;
+import com.lovetropics.survivalplus.message.SetSPScrollMessage;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -149,8 +150,10 @@ public class SurvivalPlusContainer extends Container {
 		}
 	}
 	
-	private final PlayerInventory playerInv;
+	private final PlayerEntity player;
 	public final InfiniteInventory inventory;
+	
+	private int scrollOffset;
 	
 	public SurvivalPlusContainer(int windowId, PlayerInventory playerInventory) {
 		this(windowId, playerInventory, playerInventory.player);
@@ -158,7 +161,7 @@ public class SurvivalPlusContainer extends Container {
 	
 	public SurvivalPlusContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
 		super(TYPE, windowId);
-		this.playerInv = playerInventory;
+		this.player = player;
 		
 		List<ItemStack> buildingStacks = SPConfigs.SERVER.getFilter().getAllStacks();
 		this.inventory = new InfiniteInventory(player, buildingStacks);
@@ -178,9 +181,17 @@ public class SurvivalPlusContainer extends Container {
 	public void setScrollOffset(int scrollOffset) {
 		scrollOffset = Math.max(scrollOffset, 0);
 		
-		for (Slot slot : this.inventorySlots) {
-			if (slot instanceof InfiniteSlot) {
-				((InfiniteSlot) slot).setScrollOffset(scrollOffset);
+		if (this.scrollOffset != scrollOffset) {
+			this.scrollOffset = scrollOffset;
+			
+			if (!player.world.isRemote) {
+				SurvivalPlus.NETWORK.sendToServer(new SetSPScrollMessage(scrollOffset));
+			}
+			
+			for (Slot slot : this.inventorySlots) {
+				if (slot instanceof InfiniteSlot) {
+					((InfiniteSlot) slot).setScrollOffset(scrollOffset);
+				}
 			}
 		}
 	}
