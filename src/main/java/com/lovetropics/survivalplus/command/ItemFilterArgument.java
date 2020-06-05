@@ -32,6 +32,7 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 	@Override
 	public ItemFilterArgument.Result parse(StringReader reader) throws CommandSyntaxException {
 		if (reader.canRead(1) && reader.peek() == '*') {
+			reader.skip();
 			return new WildcardResult();
 		}
 		

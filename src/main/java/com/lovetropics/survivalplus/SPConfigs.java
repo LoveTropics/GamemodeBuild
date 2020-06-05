@@ -32,7 +32,7 @@ public class SPConfigs {
 		}
 		
 		public void addWhitelist(String entry) {
-			this.modifyBlacklist(whitelist -> whitelist.add(entry));
+			this.modifyWhitelist(whitelist -> whitelist.add(entry));
 		}
 		
 		public void addBlacklist(String entry) {
