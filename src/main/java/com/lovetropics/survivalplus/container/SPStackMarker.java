@@ -1,5 +1,6 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.survivalplus.container;
 
+import com.lovetropics.survivalplus.SurvivalPlus;
 import net.minecraft.item.ItemStack;
 
 public final class SPStackMarker {

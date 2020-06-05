@@ -1,5 +1,7 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.survivalplus.container;
 
+import com.lovetropics.survivalplus.SPPlayerState;
+import com.lovetropics.survivalplus.SurvivalPlus;
 import com.lovetropics.survivalplus.message.OpenSPInventoryMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;

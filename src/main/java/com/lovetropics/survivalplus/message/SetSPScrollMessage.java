@@ -2,7 +2,7 @@ package com.lovetropics.survivalplus.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.survivalplus.SurvivalPlusContainer;
+import com.lovetropics.survivalplus.container.SurvivalPlusContainer;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkDirection;

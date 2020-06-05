@@ -1,7 +1,9 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.survivalplus.container;
 
 import java.util.List;
 
+import com.lovetropics.survivalplus.SPConfigs;
+import com.lovetropics.survivalplus.SurvivalPlus;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -47,14 +49,6 @@ public class SurvivalPlusContainer extends Container {
 		private InfiniteInventory(PlayerEntity player, List<ItemStack> items) {
 			this.player = player;
 			this.items = items;
-		}
-		
-		public void setAvailableItems(List<ItemStack> items) {
-			this.items = items;
-		}
-		
-		public List<ItemStack> getAvailableItems() {
-			return this.items;
 		}
 		
 		@Override

@@ -1,5 +1,6 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.survivalplus.container;
 
+import com.lovetropics.survivalplus.SurvivalPlus;
 import com.lovetropics.survivalplus.message.SetSPScrollMessage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;

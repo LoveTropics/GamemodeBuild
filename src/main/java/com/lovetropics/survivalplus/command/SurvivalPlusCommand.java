@@ -28,17 +28,21 @@ public final class SurvivalPlusCommand {
 					.then(literal("remove")
 						.then(argument("item", ItemFilterArgument.itemFilter())
 						.suggests(whitelistSuggestions())
-						.executes(SurvivalPlusCommand::removeWhitelist)))
+						.executes(SurvivalPlusCommand::removeWhitelist))
+					.then(literal("clear")
+						.executes(SurvivalPlusCommand::clearWhitelist)))
 				)
 				.then(literal("blacklist")
 					.requires(src -> src.hasPermissionLevel(4))
 					.then(literal("add")
 						.then(argument("item", ItemFilterArgument.itemFilter())
 						.executes(SurvivalPlusCommand::addBlacklist)))
-					.then(literal("remove")
-						.then(argument("item", ItemFilterArgument.itemFilter())
-						.suggests(blacklistSuggestions())
-						.executes(SurvivalPlusCommand::removeBlacklist)))
+						.then(literal("remove")
+							.then(argument("item", ItemFilterArgument.itemFilter())
+							.suggests(blacklistSuggestions())
+							.executes(SurvivalPlusCommand::removeBlacklist))
+						.then(literal("clear")
+							.executes(SurvivalPlusCommand::clearBlacklist)))
 				)
 		);
 		// @formatter:on
@@ -86,6 +90,30 @@ public final class SurvivalPlusCommand {
 		} else {
 			throw FILTER_DID_NOT_EXIST.create();
 		}
+		
+		return Command.SINGLE_SUCCESS;
+	}
+	
+	private static int clearWhitelist(CommandContext<CommandSource> ctx) {
+		int count = SPConfigs.SERVER.modifyWhitelist(whitelist -> {
+			int size = whitelist.size();
+			whitelist.clear();
+			return size;
+		});
+		
+		ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " whitelist entries"), false);
+		
+		return Command.SINGLE_SUCCESS;
+	}
+	
+	private static int clearBlacklist(CommandContext<CommandSource> ctx) {
+		int count = SPConfigs.SERVER.modifyBlacklist(blacklist -> {
+			int size = blacklist.size();
+			blacklist.clear();
+			return size;
+		});
+		
+		ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " blacklist entries"), false);
 		
 		return Command.SINGLE_SUCCESS;
 	}

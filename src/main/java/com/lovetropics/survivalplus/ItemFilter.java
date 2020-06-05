@@ -1,6 +1,7 @@
 package com.lovetropics.survivalplus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -85,6 +86,10 @@ public class ItemFilter {
 	}
 	
 	public List<ItemStack> getStacks(ItemGroup group) {
+		if (whitelistPredicates.isEmpty()) {
+			return Collections.emptyList();
+		}
+		
 		NonNullList<ItemStack> ret = NonNullList.create();
 		group.fill(ret);
 		ret.removeIf(s -> whitelistPredicates.stream().noneMatch(p -> p.test(s.getItem())));
