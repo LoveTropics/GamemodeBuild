@@ -7,6 +7,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -34,6 +36,11 @@ public final class SetSPEnabledMessage {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player != null) {
 					SPPlayerState.setEnabled(player, message.enabled);
+					if (message.enabled) {
+						player.sendMessage(new StringTextComponent("SurvivalPlus enabled"), ChatType.SYSTEM);
+					} else {
+						player.sendMessage(new StringTextComponent("SurvivalPlus disabled"), ChatType.SYSTEM);
+					}
 				}
 			} else if (ctx.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
 				DistExecutor.runWhenOn(Dist.CLIENT,  () -> () -> {
