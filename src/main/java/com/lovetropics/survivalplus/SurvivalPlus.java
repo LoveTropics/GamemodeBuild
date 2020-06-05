@@ -47,6 +47,11 @@ public class SurvivalPlus
 				.encoder(OpenSPInventoryMessage::serialize).decoder(OpenSPInventoryMessage::deserialize)
 				.consumer(OpenSPInventoryMessage::handle)
 				.add();
+		
+		NETWORK.messageBuilder(SetSPEnabledMessage.class, 1, NetworkDirection.PLAY_TO_SERVER)
+				.encoder(SetSPEnabledMessage::serialize).decoder(SetSPEnabledMessage::deserialize)
+				.consumer(SetSPEnabledMessage::handle)
+				.add();
 	}
 
 	private void doClientStuff(final FMLClientSetupEvent event) {

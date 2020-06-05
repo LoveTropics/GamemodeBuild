@@ -21,11 +21,14 @@ public class SPKeyBindings {
 		if (event.phase == Phase.END && SWITCH_MODE.isPressed()) {
 			ClientPlayerEntity player = Minecraft.getInstance().player;
 			if (player != null) {
-				boolean enabled = SPPlayerState.isEnabled(player);
-				SPPlayerState.setEnabled(player, !enabled);
+				boolean enabled = !SPPlayerState.isEnabled(player);
+				
+				SurvivalPlus.NETWORK.sendToServer(new SetSPEnabledMessage(enabled));
+				SPPlayerState.setEnabled(player, enabled);
 			}
 		}
 	}
 	
-	public static void register() {}
+	public static void register() {
+	}
 }

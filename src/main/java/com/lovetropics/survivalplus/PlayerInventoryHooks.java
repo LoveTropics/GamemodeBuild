@@ -16,6 +16,10 @@ public final class PlayerInventoryHooks {
 		ClientPlayerEntity player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
+		if (!SPPlayerState.isEnabled(player)) {
+			return;
+		}
+		
 		if (event.getGui() instanceof InventoryScreen) {
 			SurvivalPlus.NETWORK.sendToServer(new OpenSPInventoryMessage());
 			

@@ -1,5 +1,6 @@
 package com.lovetropics.survivalplus;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
@@ -15,6 +16,14 @@ public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 		super(screenContainer, inv, titleIn);
 		xSize = 195;
 		ySize = 136 + 28;
+	}
+	
+	@Override
+	public void render(int mouseX, int mouseY, float partialTicks) {
+		this.renderBackground();
+		super.render(mouseX, mouseY, partialTicks);
+		RenderSystem.disableBlend();
+		this.renderHoveredToolTip(mouseX, mouseY);
 	}
 
 	@Override
