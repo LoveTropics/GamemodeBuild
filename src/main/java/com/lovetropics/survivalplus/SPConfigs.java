@@ -28,9 +28,38 @@ public class SPConfigs {
 			whitelist = builder.defineList("whitelist", new ArrayList<>(), Predicates.alwaysTrue());
 			blacklist = builder.defineList("blacklist", new ArrayList<>(), Predicates.alwaysTrue());
 		}
+		
+		public void addWhitelist(String entry) {
+			@SuppressWarnings("unchecked")
+			List<String> whitelist = (List<String>) this.whitelist.get();
+			whitelist.add(entry);
+			
+			this.whitelist.set(whitelist);
+			this.whitelist.save();
+			
+			this.resetFilter();
+		}
+		
+		public void addBlacklist(String entry) {
+			@SuppressWarnings("unchecked")
+			List<String> blacklist = (List<String>) this.blacklist.get();
+			blacklist.add(entry);
+			
+			this.blacklist.set(blacklist);
+			this.blacklist.save();
+			
+			this.resetFilter();
+		}
 
 		public ItemFilter getFilter() {
+			if (filter == null) {
+				filter = ItemFilter.fromStrings(whitelist.get(), blacklist.get());
+			}
 			return filter;
+		}
+		
+		void resetFilter() {
+			filter = null;
 		}
 	}
 
@@ -44,15 +73,11 @@ public class SPConfigs {
 
 	@SubscribeEvent
 	public static void onLoad(final ModConfig.Loading configEvent) {
-		updateFilter();
+		SERVER.resetFilter();
 	}
 
 	@SubscribeEvent
 	public static void onReload(final ModConfig.Reloading configEvent) {
-		updateFilter();
-	}
-
-	private static void updateFilter() {
-		SERVER.filter = ItemFilter.fromStrings(SERVER.whitelist.get(), SERVER.blacklist.get());
+		SERVER.resetFilter();
 	}
 }

@@ -1,5 +1,6 @@
 package com.lovetropics.survivalplus;
 
+import com.lovetropics.survivalplus.message.SetSPEnabledMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.settings.KeyBinding;

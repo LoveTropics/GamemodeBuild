@@ -1,7 +1,8 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.survivalplus.message;
 
 import java.util.function.Supplier;
 
+import com.lovetropics.survivalplus.SPPlayerState;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
