@@ -34,5 +34,6 @@ public class SurvivalPlus
 	}
 
 	private void doClientStuff(final FMLClientSetupEvent event) {
+		SPKeyBindings.register();
 	}
 }
