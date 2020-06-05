@@ -30,6 +30,8 @@ public class SurvivalPlusContainer extends Container {
 	@ObjectHolder(SurvivalPlus.MODID + ":container")
 	public static final ContainerType<SurvivalPlusContainer> TYPE = null;
 	
+	private static final ThreadLocal<Boolean> SUPPRESS_SEND_CHANGES = new ThreadLocal<>();
+	
 	@SubscribeEvent
 	public static void onContainerRegistry(RegistryEvent.Register<ContainerType<?>> event) {
 		ContainerType<SurvivalPlusContainer> type = new ContainerType<>(SurvivalPlusContainer::new);
@@ -116,6 +118,12 @@ public class SurvivalPlusContainer extends Container {
 			return true;
 		}
 		
+		@Override
+		public boolean isItemValid(ItemStack stack) {
+			// only allow items to be deleted if they are from the gui
+			return SPStackMarker.isMarked(stack);
+		}
+		
 		public void setScrollOffset(int offset) {
 			this.idxOffset = offset * WIDTH;
 		}
@@ -131,6 +139,12 @@ public class SurvivalPlusContainer extends Container {
 		
 		@Override
 		public ItemStack getStack() {
+			// we don't want to synchronize anything when running detectAndSendChanges, so hide our real state
+			Boolean suppressSendChanges = SUPPRESS_SEND_CHANGES.get();
+			if (suppressSendChanges != null && suppressSendChanges) {
+				return ItemStack.EMPTY;
+			}
+			
 			return this.inventory.getStackInSlot(this.getSlotIndex() + this.idxOffset);
 		}
 	}
@@ -186,6 +200,12 @@ public class SurvivalPlusContainer extends Container {
 	
 	@Override
 	public void detectAndSendChanges() {
+		SUPPRESS_SEND_CHANGES.set(true);
+		try {
+			super.detectAndSendChanges();
+		} finally {
+			SUPPRESS_SEND_CHANGES.set(false);
+		}
 	}
 	
 	@Override
