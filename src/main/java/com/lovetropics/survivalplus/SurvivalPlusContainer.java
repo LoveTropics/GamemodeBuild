@@ -66,7 +66,12 @@ public class SurvivalPlusContainer extends Container {
 
 		@Override
 		public ItemStack getStackInSlot(int index) {
-			return index < this.items.size() ? this.items.get(index).copy() : ItemStack.EMPTY;
+			if (index < this.items.size()) {
+				ItemStack stack = this.items.get(index).copy();
+				SPStackMarker.mark(stack);
+				return stack;
+			}
+			return ItemStack.EMPTY;
 		}
 
 		@Override
@@ -83,7 +88,7 @@ public class SurvivalPlusContainer extends Container {
 		public ItemStack removeStackFromSlot(int index) {
 			return this.getStackInSlot(index);
 		}
-
+		
 		@Override
 		public void setInventorySlotContents(int index, ItemStack stack) {
 		}
@@ -169,8 +174,9 @@ public class SurvivalPlusContainer extends Container {
 				this.mergeItemStack(stack, 5 * 9, this.inventorySlots.size(), false);
 				return ItemStack.EMPTY;
 			} else {
-				// TODO make sure this is an item you can get from the inventory in the first place
-				slot.putStack(ItemStack.EMPTY);
+				if (SPStackMarker.isMarked(stack)) {
+					slot.putStack(ItemStack.EMPTY);
+				}
 				return ItemStack.EMPTY;
 			}
 		}
