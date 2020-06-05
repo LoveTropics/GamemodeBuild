@@ -98,7 +98,7 @@ public class SurvivalPlusContainer extends Container {
 		}
 	}
 
-	private static class InfiniteSlot extends Slot {
+	public static class InfiniteSlot extends Slot {
 		public InfiniteSlot(InfiniteInventory inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
 		}
@@ -150,15 +150,23 @@ public class SurvivalPlusContainer extends Container {
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
-		ItemStack itemstack = ItemStack.EMPTY;
+	public ItemStack transferStackInSlot(PlayerEntity player, int index) {
 		Slot slot = this.inventorySlots.get(index);
+		
+		// recreate shift-click to pick up max stack behaviour
+		if (slot instanceof InfiniteSlot) {
+			ItemStack stack = slot.getStack().copy();
+			stack.setCount(stack.getMaxStackSize());
+			player.inventory.setItemStack(stack);
+			
+			return ItemStack.EMPTY;
+		}
+		
 		if (slot != null && slot.getHasStack()) {
-			ItemStack itemstack1 = slot.getStack();
-			itemstack = itemstack1.copy();
+			ItemStack stack = slot.getStack();
 			if (index < 5 * 9) {
-				itemstack1.setCount(64);
-				this.mergeItemStack(itemstack1, 5 * 9, this.inventorySlots.size(), false);
+				stack.setCount(64);
+				this.mergeItemStack(stack, 5 * 9, this.inventorySlots.size(), false);
 				return ItemStack.EMPTY;
 			} else {
 				// TODO make sure this is an item you can get from the inventory in the first place
@@ -167,6 +175,6 @@ public class SurvivalPlusContainer extends Container {
 			}
 		}
 
-		return itemstack;
+		return ItemStack.EMPTY;
 	}
 }

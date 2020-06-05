@@ -3,6 +3,8 @@ package com.lovetropics.survivalplus;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.ClickType;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 
@@ -44,5 +46,10 @@ public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 		
 		getMinecraft().getTextureManager().bindTexture(TABS);
 		blit(guiLeft, guiTop, 0, 32, 28, 32);
+	}
+	
+	@Override
+	protected void handleMouseClick(Slot slot, int slotId, int mouseButton, ClickType type) {
+		super.handleMouseClick(slot, slotId, mouseButton, type);
 	}
 }

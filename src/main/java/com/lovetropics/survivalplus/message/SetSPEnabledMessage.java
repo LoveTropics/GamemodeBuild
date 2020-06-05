@@ -37,9 +37,9 @@ public final class SetSPEnabledMessage {
 				if (player != null) {
 					SPPlayerState.setEnabled(player, message.enabled);
 					if (message.enabled) {
-						player.sendMessage(new StringTextComponent("SurvivalPlus enabled"), ChatType.SYSTEM);
+						player.sendMessage(new StringTextComponent("SurvivalPlus enabled"), ChatType.GAME_INFO);
 					} else {
-						player.sendMessage(new StringTextComponent("SurvivalPlus disabled"), ChatType.SYSTEM);
+						player.sendMessage(new StringTextComponent("SurvivalPlus disabled"), ChatType.GAME_INFO);
 					}
 				}
 			} else if (ctx.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
