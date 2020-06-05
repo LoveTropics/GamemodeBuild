@@ -87,7 +87,7 @@ public class ItemFilter {
 	public List<ItemStack> getStacks(ItemGroup group) {
 		NonNullList<ItemStack> ret = NonNullList.create();
 		group.fill(ret);
-		ret.removeIf(s -> !whitelistPredicates.stream().anyMatch(p -> p.test(s.getItem())));
+		ret.removeIf(s -> whitelistPredicates.stream().noneMatch(p -> p.test(s.getItem())));
 		ret.removeIf(s -> blacklistPredicates.stream().anyMatch(p -> p.test(s.getItem())));
 		return ret;
 	}
