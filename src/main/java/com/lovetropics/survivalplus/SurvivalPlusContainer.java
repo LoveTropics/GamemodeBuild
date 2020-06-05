@@ -22,48 +22,55 @@ import net.minecraftforge.registries.ObjectHolder;
 
 @EventBusSubscriber(modid = SurvivalPlus.MODID, bus = Bus.MOD)
 public class SurvivalPlusContainer extends Container {
-
+	public static final int WIDTH = 9;
+	public static final int HEIGHT = 5;
+	
 	@ObjectHolder(SurvivalPlus.MODID + ":container")
 	public static final ContainerType<SurvivalPlusContainer> TYPE = null;
-
+	
 	@SubscribeEvent
 	public static void onContainerRegistry(RegistryEvent.Register<ContainerType<?>> event) {
 		ContainerType<SurvivalPlusContainer> type = new ContainerType<>(SurvivalPlusContainer::new);
 		event.getRegistry().register(type.setRegistryName("container"));
-
+		
 		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.registerFactory(type, SurvivalPlusScreen::new));
 	}
-
+	
 	public static StringTextComponent title() {
 		return new StringTextComponent("SurvivalPlus");
 	}
-
-	private static class InfiniteInventory implements IInventory {
+	
+	public static class InfiniteInventory implements IInventory {
 		private final PlayerEntity player;
 		private List<ItemStack> items;
-
+		
 		private InfiniteInventory(PlayerEntity player, List<ItemStack> items) {
 			this.player = player;
 			this.items = items;
 		}
-
+		
 		public void setAvailableItems(List<ItemStack> items) {
 			this.items = items;
 		}
-
+		
+		public List<ItemStack> getAvailableItems() {
+			return this.items;
+		}
+		
 		@Override
-		public void clear() { }
-
+		public void clear() {
+		}
+		
 		@Override
 		public int getSizeInventory() {
 			return this.items.size();
 		}
-
+		
 		@Override
 		public boolean isEmpty() {
 			return this.items.isEmpty();
 		}
-
+		
 		@Override
 		public ItemStack getStackInSlot(int index) {
 			if (index < this.items.size()) {
@@ -73,7 +80,7 @@ public class SurvivalPlusContainer extends Container {
 			}
 			return ItemStack.EMPTY;
 		}
-
+		
 		@Override
 		public ItemStack decrStackSize(int index, int count) {
 			ItemStack stack = this.getStackInSlot(index);
@@ -83,7 +90,7 @@ public class SurvivalPlusContainer extends Container {
 			}
 			return ItemStack.EMPTY;
 		}
-
+		
 		@Override
 		public ItemStack removeStackFromSlot(int index) {
 			return this.getStackInSlot(index);
@@ -92,68 +99,106 @@ public class SurvivalPlusContainer extends Container {
 		@Override
 		public void setInventorySlotContents(int index, ItemStack stack) {
 		}
-
+		
 		@Override
 		public void markDirty() {
 		}
-
+		
 		@Override
 		public boolean isUsableByPlayer(PlayerEntity player) {
 			return true;
 		}
 	}
-
+	
 	public static class InfiniteSlot extends Slot {
+		private int idxOffset;
+		
 		public InfiniteSlot(InfiniteInventory inventory, int index, int x, int y) {
 			super(inventory, index, x, y);
 		}
-
+		
 		@Override
 		public boolean canTakeStack(PlayerEntity player) {
 			return true;
 		}
+		
+		public void setScrollOffset(int offset) {
+			this.idxOffset = offset * WIDTH;
+		}
+		
+		@Override
+		public void putStack(ItemStack stack) {
+		}
+		
+		@Override
+		public ItemStack decrStackSize(int amount) {
+			return this.inventory.decrStackSize(this.getSlotIndex() + this.idxOffset, amount);
+		}
+		
+		@Override
+		public ItemStack getStack() {
+			return this.inventory.getStackInSlot(this.getSlotIndex() + this.idxOffset);
+		}
 	}
-
+	
 	private final PlayerInventory playerInv;
-	private final InfiniteInventory inventory;
-
+	public final InfiniteInventory inventory;
+	
 	public SurvivalPlusContainer(int windowId, PlayerInventory playerInventory) {
 		this(windowId, playerInventory, playerInventory.player);
 	}
-
+	
 	public SurvivalPlusContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
 		super(TYPE, windowId);
 		this.playerInv = playerInventory;
-
+		
 		List<ItemStack> buildingStacks = SPConfigs.SERVER.getFilter().getAllStacks();
 		this.inventory = new InfiniteInventory(player, buildingStacks);
-
-		int width = 9;
-		int height = 5;
-
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				int i = x + y * width;
+		
+		for (int y = 0; y < HEIGHT; y++) {
+			for (int x = 0; x < WIDTH; x++) {
+				int i = x + y * WIDTH;
 				addSlot(new InfiniteSlot(inventory, i, 9 + x * 18, 28 + 18 + y * 18));
 			}
 		}
-
-		for (int h = 0; h < width; h++) {
+		
+		for (int h = 0; h < WIDTH; h++) {
 			this.addSlot(new Slot(playerInventory, h, 9 + h * 18, 112 + 28));
 		}
 	}
-
+	
+	public void setScrollOffset(int scrollOffset) {
+		scrollOffset = Math.max(scrollOffset, 0);
+		
+		for (Slot slot : this.inventorySlots) {
+			if (slot instanceof InfiniteSlot) {
+				((InfiniteSlot) slot).setScrollOffset(scrollOffset);
+			}
+		}
+	}
+	
+	public int scrollHeight() {
+		return (this.inventory.items.size() + WIDTH - 1) / WIDTH - HEIGHT;
+	}
+	
+	public boolean canScroll() {
+		return this.inventory.items.size() > WIDTH * HEIGHT;
+	}
+	
 	@OnlyIn(Dist.CLIENT)
 	@Override
 	public void setAll(List<ItemStack> stacks) {
-		this.inventory.setAvailableItems(stacks);
 	}
-
+	
+	@Override
+	public void detectAndSendChanges() {
+	}
+	
 	@Override
 	public boolean canInteractWith(PlayerEntity playerIn) {
 		return true;
 	}
-
+	
 	@Override
 	public ItemStack transferStackInSlot(PlayerEntity player, int index) {
 		Slot slot = this.inventorySlots.get(index);
@@ -180,7 +225,7 @@ public class SurvivalPlusContainer extends Container {
 				return ItemStack.EMPTY;
 			}
 		}
-
+		
 		return ItemStack.EMPTY;
 	}
 }

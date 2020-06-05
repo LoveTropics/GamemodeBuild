@@ -7,6 +7,7 @@ import com.lovetropics.survivalplus.command.ItemFilterArgument;
 import com.lovetropics.survivalplus.command.SurvivalPlusCommand;
 import com.lovetropics.survivalplus.message.OpenSPInventoryMessage;
 import com.lovetropics.survivalplus.message.SetSPEnabledMessage;
+import com.lovetropics.survivalplus.message.SetSPScrollMessage;
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.util.ResourceLocation;
@@ -58,6 +59,11 @@ public class SurvivalPlus {
 		NETWORK.messageBuilder(SetSPEnabledMessage.class, 1)
 				.encoder(SetSPEnabledMessage::serialize).decoder(SetSPEnabledMessage::deserialize)
 				.consumer(SetSPEnabledMessage::handle)
+				.add();
+		
+		NETWORK.messageBuilder(SetSPScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
+				.encoder(SetSPScrollMessage::serialize).decoder(SetSPScrollMessage::deserialize)
+				.consumer(SetSPScrollMessage::handle)
 				.add();
 		
 		ArgumentTypes.register(SurvivalPlus.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
