@@ -189,7 +189,7 @@ public class SurvivalPlusContainer extends Container {
 		if (this.scrollOffset != scrollOffset) {
 			this.scrollOffset = scrollOffset;
 			
-			if (!player.world.isRemote) {
+			if (player.world.isRemote) {
 				SurvivalPlus.NETWORK.sendToServer(new SetSPScrollMessage(scrollOffset));
 			}
 			
