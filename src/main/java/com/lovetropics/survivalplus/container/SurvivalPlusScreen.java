@@ -10,7 +10,7 @@ import net.minecraft.util.text.ITextComponent;
 
 public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 	
-	private static final ResourceLocation TEXTURE = new ResourceLocation(SurvivalPlus.MODID, "textures/gui/menu.png");
+	private static final ResourceLocation TEXTURE = new ResourceLocation(SurvivalPlus.MODID, "textures/gui/menu_nosearch.png");
 	
 	private static final ResourceLocation TABS = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
 	
@@ -20,7 +20,7 @@ public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 	public SurvivalPlusScreen(SurvivalPlusContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
 		super(screenContainer, inv, titleIn);
 		this.xSize = 195;
-		this.ySize = 136 + 28;
+		this.ySize = 136;// + 28;
 	}
 	
 	@Override
@@ -33,22 +33,22 @@ public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-		this.font.drawString(this.title.getFormattedText(), 8.0F, 6.0F + 28, 0x404040);
+		this.font.drawString(this.title.getFormattedText(), 8.0F, 6.0F/* + 28*/, 0x404040);
 	}
 	
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-		this.getMinecraft().getTextureManager().bindTexture(TABS);
-		for (int i = 1; i < 5; i++) {
-			this.blit(this.guiLeft + (i * 29), this.guiTop, i * 28, 0, 28, 32);
-		}
-		this.blit(this.guiLeft + this.xSize - 28, this.guiTop, 5 * 28, 0, 28, 32);
+//		this.getMinecraft().getTextureManager().bindTexture(TABS);
+//		for (int i = 1; i < 5; i++) {
+//			this.blit(this.guiLeft + (i * 29), this.guiTop, i * 28, 0, 28, 32);
+//		}
+//		this.blit(this.guiLeft + this.xSize - 28, this.guiTop, 5 * 28, 0, 28, 32);
 		
 		this.getMinecraft().getTextureManager().bindTexture(TEXTURE);
-		this.blit(this.guiLeft, this.guiTop + 28, 0, 0, this.xSize, this.ySize);
+		this.blit(this.guiLeft, this.guiTop/* + 28*/, 0, 0, this.xSize, this.ySize);
 		
 		this.getMinecraft().getTextureManager().bindTexture(TABS);
-		this.blit(this.guiLeft, this.guiTop, 0, 32, 28, 32);
+//		this.blit(this.guiLeft, this.guiTop, 0, 32, 28, 32);
 		
 		if (this.container.canScroll()) {
 			Rect2i rect = this.scrollRect();
@@ -116,7 +116,7 @@ public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
 	
 	private Rect2i scrollArea() {
 		int scrollLeft = this.guiLeft + 175;
-		int scrollTop = this.guiTop + 46;
+		int scrollTop = this.guiTop + 18/* + 28*/;
 		return new Rect2i(scrollLeft, scrollTop, 12, 112);
 	}
 	
