@@ -9,6 +9,7 @@ import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
@@ -32,6 +33,7 @@ public class SurvivalPlusContainer extends Container {
 	public static final ContainerType<SurvivalPlusContainer> TYPE = null;
 	
 	private static final ThreadLocal<Boolean> SUPPRESS_SEND_CHANGES = new ThreadLocal<>();
+	private boolean takeStacks = false;
 	
 	@SubscribeEvent
 	public static void onContainerRegistry(RegistryEvent.Register<ContainerType<?>> event) {
@@ -45,7 +47,7 @@ public class SurvivalPlusContainer extends Container {
 		return new StringTextComponent("SurvivalPlus");
 	}
 	
-	public static class InfiniteInventory implements IInventory {
+	public class InfiniteInventory implements IInventory {
 		private final PlayerEntity player;
 		private List<ItemStack> items;
 		
@@ -72,6 +74,9 @@ public class SurvivalPlusContainer extends Container {
 		public ItemStack getStackInSlot(int index) {
 			if (index < this.items.size()) {
 				ItemStack stack = this.items.get(index).copy();
+				if (takeStacks) {
+					stack.setCount(stack.getMaxStackSize());
+				}
 				SPStackMarker.mark(stack);
 				return stack;
 			}
@@ -222,6 +227,14 @@ public class SurvivalPlusContainer extends Container {
 	@Override
 	public boolean canInteractWith(PlayerEntity playerIn) {
 		return true;
+	}
+	
+	@Override
+	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+		this.takeStacks = true;
+		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
+		this.takeStacks = false;
+		return ret;
 	}
 	
 	@Override
