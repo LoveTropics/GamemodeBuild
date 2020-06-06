@@ -30,7 +30,7 @@ public class SurvivalPlus {
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final String NET_PROTOCOL = "1";
+	private static final String NET_PROTOCOL = "2";
 	
 	public static final SimpleChannel NETWORK = NetworkRegistry.ChannelBuilder.named(new ResourceLocation(MODID, "net"))
 			.networkProtocolVersion(() -> NET_PROTOCOL)
