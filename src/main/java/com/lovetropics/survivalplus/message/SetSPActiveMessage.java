@@ -3,6 +3,8 @@ package com.lovetropics.survivalplus.message;
 import java.util.function.Supplier;
 
 import com.lovetropics.survivalplus.SPPlayerState;
+import com.lovetropics.survivalplus.container.SPStackMarker;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -42,6 +44,12 @@ public final class SetSPActiveMessage {
 						if (message.enabled) {
 							player.sendMessage(new StringTextComponent("SurvivalPlus activated"), ChatType.GAME_INFO);
 						} else {
+							// Clear marked stacks from inventory
+							for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+								if (SPStackMarker.isMarked(player.inventory.getStackInSlot(i))) {
+									player.inventory.removeStackFromSlot(i);
+								}
+							}
 							player.sendMessage(new StringTextComponent("SurvivalPlus deactivated"), ChatType.GAME_INFO);
 						}
 					}
