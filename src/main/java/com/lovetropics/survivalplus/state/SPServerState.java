@@ -38,12 +38,14 @@ public final class SPServerState {
 	}
 	
 	public static void setActiveFor(ServerPlayerEntity player, boolean active) {
-		SPPlayerStore.setActive(player, active);
-		notifyPlayerActivity(player);
+		if (isEnabledFor(player) || !active) {
+			SPPlayerStore.setActive(player, active);
+			notifyPlayerActivity(player);
+		}
 	}
 	
 	public static boolean isActiveFor(ServerPlayerEntity player) {
-		return SPPlayerStore.isActive(player);
+		return isEnabledFor(player) && SPPlayerStore.isActive(player);
 	}
 	
 	private static void notifyPlayerActivity(ServerPlayerEntity player) {
