@@ -26,6 +26,8 @@ minecraft {
     // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
+        	taskName 'sp_client'
+        	
             workingDirectory project.file('run')
 
             // Recommended logging level for the console
@@ -39,6 +41,8 @@ minecraft {
         }
 
         server {
+        	taskName 'sp_server'
+        	
             workingDirectory project.file('run')
 
             // Recommended logging level for the console
@@ -52,6 +56,8 @@ minecraft {
         }
 
         data {
+        	taskName 'sp_data'
+        	
             workingDirectory project.file('run')
 
             // Recommended logging data for a userdev environment
