@@ -19,21 +19,14 @@ public final class SPPlayerStore {
 		return !survivalPlus.contains(KEY_ENABLED) || survivalPlus.getBoolean(KEY_ENABLED);
 	}
 	
-	public static boolean setActive(PlayerEntity player, boolean active) {
-		if (isEnabled(player) || !active) {
-			CompoundNBT survivalPlus = getOrCreatePersistent(player, SurvivalPlus.MODID);
-			survivalPlus.putBoolean(KEY_ACTIVE, active);
-			return true;
-		}
-		return false;
+	public static void setActive(PlayerEntity player, boolean active) {
+		CompoundNBT survivalPlus = getOrCreatePersistent(player, SurvivalPlus.MODID);
+		survivalPlus.putBoolean(KEY_ACTIVE, active);
 	}
 	
 	public static boolean isActive(PlayerEntity player) {
-		if (isEnabled(player)) {
-			CompoundNBT survivalPlus = getOrCreatePersistent(player, SurvivalPlus.MODID);
-			return survivalPlus.getBoolean(KEY_ACTIVE);
-		}
-		return false;
+		CompoundNBT survivalPlus = getOrCreatePersistent(player, SurvivalPlus.MODID);
+		return survivalPlus.getBoolean(KEY_ACTIVE);
 	}
 	
 	private static CompoundNBT getOrCreatePersistent(PlayerEntity player, String key) {
