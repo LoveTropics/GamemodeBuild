@@ -174,12 +174,12 @@ public class SurvivalPlusContainer extends Container {
 		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x < WIDTH; x++) {
 				int i = x + y * WIDTH;
-				addSlot(new InfiniteSlot(inventory, i, 9 + x * 18, 28 + 18 + y * 18));
+				addSlot(new InfiniteSlot(inventory, i, 9 + x * 18, /*28 + */18 + y * 18));
 			}
 		}
 		
 		for (int h = 0; h < WIDTH; h++) {
-			this.addSlot(new Slot(playerInventory, h, 9 + h * 18, 112 + 28));
+			this.addSlot(new Slot(playerInventory, h, 9 + h * 18, 112/* + 28*/));
 		}
 	}
 	
