@@ -18,6 +18,7 @@ import net.minecraft.tags.Tag;
 import net.minecraft.util.LazyValue;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public class ItemFilter {
@@ -89,9 +90,11 @@ public class ItemFilter {
 		if (whitelistPredicates.isEmpty()) {
 			return Collections.emptyList();
 		}
-		
+
 		NonNullList<ItemStack> ret = NonNullList.create();
-		group.fill(ret);
+		for (Item item : Registry.ITEM) {
+			item.fillItemGroup(group, ret);
+		}
 		ret.removeIf(s -> whitelistPredicates.stream().noneMatch(p -> p.test(s.getItem())));
 		ret.removeIf(s -> blacklistPredicates.stream().anyMatch(p -> p.test(s.getItem())));
 		return ret;
