@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.base.Predicates;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -23,12 +24,14 @@ public class SPConfigs {
 		
 		final ConfigValue<List<? extends String>> whitelist;
 		final ConfigValue<List<? extends String>> blacklist;
+		final BooleanValue enabled;
 		
 		ItemFilter filter;
 		
 		Server(ForgeConfigSpec.Builder builder) {
 			whitelist = builder.defineList("whitelist", new ArrayList<>(), Predicates.alwaysTrue());
 			blacklist = builder.defineList("blacklist", new ArrayList<>(), Predicates.alwaysTrue());
+			enabled = builder.comment("Enable SurvivalPlus for all players").define("enabled", true);
 		}
 		
 		public void addWhitelist(String entry) {
@@ -90,6 +93,15 @@ public class SPConfigs {
 		
 		void resetFilter() {
 			filter = null;
+		}
+		
+		public void enable(boolean state) {
+			this.enabled.set(state);
+			this.enabled.save();
+		}
+
+		public boolean enabled() {
+			return enabled.get();
 		}
 	}
 	

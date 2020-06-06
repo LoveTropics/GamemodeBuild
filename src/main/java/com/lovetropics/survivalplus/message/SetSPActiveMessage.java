@@ -14,10 +14,10 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-public final class SetSPEnabledMessage {
+public final class SetSPActiveMessage {
 	private final boolean enabled;
 	
-	public SetSPEnabledMessage(boolean enabled) {
+	public SetSPActiveMessage(boolean enabled) {
 		this.enabled = enabled;
 	}
 	
@@ -25,28 +25,32 @@ public final class SetSPEnabledMessage {
 		buffer.writeBoolean(this.enabled);
 	}
 	
-	public static SetSPEnabledMessage deserialize(PacketBuffer buffer) {
-		return new SetSPEnabledMessage(buffer.readBoolean());
+	public static SetSPActiveMessage deserialize(PacketBuffer buffer) {
+		return new SetSPActiveMessage(buffer.readBoolean());
 	}
 	
-	public static boolean handle(SetSPEnabledMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
+	public static boolean handle(SetSPActiveMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player != null) {
-					SPPlayerState.setEnabled(player, message.enabled);
-					if (message.enabled) {
-						player.sendMessage(new StringTextComponent("SurvivalPlus enabled"), ChatType.GAME_INFO);
+					if (!SPPlayerState.isEnabled(player)) {
+						player.sendMessage(new StringTextComponent("SurvivalPlus is disabled!"), ChatType.GAME_INFO);
 					} else {
-						player.sendMessage(new StringTextComponent("SurvivalPlus disabled"), ChatType.GAME_INFO);
+						SPPlayerState.setActive(player, message.enabled);
+						if (message.enabled) {
+							player.sendMessage(new StringTextComponent("SurvivalPlus activated"), ChatType.GAME_INFO);
+						} else {
+							player.sendMessage(new StringTextComponent("SurvivalPlus deactivated"), ChatType.GAME_INFO);
+						}
 					}
 				}
 			} else if (ctx.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
 				DistExecutor.runWhenOn(Dist.CLIENT,  () -> () -> {
 					ClientPlayerEntity player = Minecraft.getInstance().player;
 					if (player != null) {
-						SPPlayerState.setEnabled(player, message.enabled);
+						SPPlayerState.setActive(player, message.enabled);
 					}
 				});
 			}

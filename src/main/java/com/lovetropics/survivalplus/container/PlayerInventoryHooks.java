@@ -19,7 +19,7 @@ public final class PlayerInventoryHooks {
 		ClientPlayerEntity player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
-		if (!SPPlayerState.isEnabled(player)) {
+		if (!SPPlayerState.isActive(player)) {
 			return;
 		}
 		
