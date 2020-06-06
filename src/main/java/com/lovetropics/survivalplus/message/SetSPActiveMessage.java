@@ -2,11 +2,9 @@ package com.lovetropics.survivalplus.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.survivalplus.SPPlayerState;
 import com.lovetropics.survivalplus.container.SPStackMarker;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
+import com.lovetropics.survivalplus.state.SPClientState;
+import com.lovetropics.survivalplus.state.SPServerState;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ChatType;
@@ -38,10 +36,10 @@ public final class SetSPActiveMessage {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player != null) {
-					if (!SPPlayerState.isEnabled(player)) {
+					if (!SPServerState.isEnabledFor(player)) {
 						player.sendMessage(new StringTextComponent("SurvivalPlus is disabled!"), ChatType.GAME_INFO);
 					} else {
-						SPPlayerState.setActive(player, message.enabled);
+						SPServerState.setActiveFor(player, message.enabled);
 						if (message.enabled) {
 							player.sendMessage(new StringTextComponent("SurvivalPlus activated"), ChatType.GAME_INFO);
 						} else {
@@ -65,9 +63,6 @@ public final class SetSPActiveMessage {
 	
 	@OnlyIn(Dist.CLIENT)
 	private static void setClientState(boolean state) {
-		ClientPlayerEntity player = Minecraft.getInstance().player;
-		if (player != null) {
-			SPPlayerState.setActive(player, state);
-		}
+		SPClientState.setActive(state);
 	}
 }

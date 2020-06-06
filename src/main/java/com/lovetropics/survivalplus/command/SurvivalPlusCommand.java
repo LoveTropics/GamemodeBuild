@@ -1,16 +1,13 @@
 package com.lovetropics.survivalplus.command;
 
-import static net.minecraft.command.Commands.argument;
-import static net.minecraft.command.Commands.literal;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 
 import com.lovetropics.survivalplus.SPConfigs;
-import com.lovetropics.survivalplus.SPPlayerState;
+import com.lovetropics.survivalplus.state.SPPlayerStore;
+import com.lovetropics.survivalplus.state.SPServerState;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -18,14 +15,17 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+
+import static net.minecraft.command.Commands.argument;
+import static net.minecraft.command.Commands.literal;
 
 public final class SurvivalPlusCommand {
 	private static final SimpleCommandExceptionType FILTER_DID_NOT_EXIST = new SimpleCommandExceptionType(new StringTextComponent("That filter did not exist!"));
@@ -72,23 +72,26 @@ public final class SurvivalPlusCommand {
 	}
 	
 	private static int enable(CommandContext<CommandSource> ctx, @Nullable Collection<GameProfile> profiles, boolean state) {
+		CommandSource src = ctx.getSource();
+		MinecraftServer server = src.getServer();
+		
 		if (profiles != null) {
 			List<ServerPlayerEntity> players = profiles.stream()
-				   .map(g -> ctx.getSource().getServer().getPlayerList().getPlayerByUUID(g.getId()))
-				   .filter(p -> SPPlayerState.isSpecificallyEnabled(p) != state)
+				   .map(g -> server.getPlayerList().getPlayerByUUID(g.getId()))
+				   .filter(p -> SPPlayerStore.isEnabled(p) != state)
 				   .collect(Collectors.toList());
-			players.forEach(p -> SPPlayerState.setEnabled(p, state));
-			ctx.getSource().sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " SurvivalPlus for " + players.size() + " player(s)"), false);
-			if (state && !SPConfigs.SERVER.enabled()) {
-				ctx.getSource().sendFeedback(new StringTextComponent("Warning: This will have no effect as SurvivalPlus is currently globally disabled!").applyTextStyle(TextFormatting.YELLOW), false);
+			players.forEach(p -> SPServerState.setEnabledFor(p, state));
+			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " SurvivalPlus for " + players.size() + " player(s)"), false);
+			if (state && !SPServerState.isGloballyEnabled()) {
+				src.sendFeedback(new StringTextComponent("Warning: This will have no effect as SurvivalPlus is currently globally disabled!").applyTextStyle(TextFormatting.YELLOW), false);
 			}
 			return players.size();
 		} else {
-			if (state == SPConfigs.SERVER.enabled()) {
+			if (state == SPServerState.isGloballyEnabled()) {
 				throw new CommandException(new StringTextComponent("SurvivalPlus is already " + (state ? "enabled" : "disabled")));
 			}
-			SPConfigs.SERVER.enable(state);
-			ctx.getSource().sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " SurvivalPlus globally"), false);
+			SPServerState.setGloballyEnabled(server, state);
+			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " SurvivalPlus globally"), false);
 			return Command.SINGLE_SUCCESS;
 		}
 	}
