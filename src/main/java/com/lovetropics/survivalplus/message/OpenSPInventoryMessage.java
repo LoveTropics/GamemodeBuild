@@ -2,8 +2,8 @@ package com.lovetropics.survivalplus.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.survivalplus.SPPlayerState;
 import com.lovetropics.survivalplus.container.SurvivalPlusContainer;
+import com.lovetropics.survivalplus.state.SPServerState;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.network.PacketBuffer;
@@ -21,7 +21,7 @@ public final class OpenSPInventoryMessage {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			ServerPlayerEntity player = ctx.getSender();
-			if (player != null && SPPlayerState.isActive(player)) {
+			if (player != null && SPServerState.isActiveFor(player)) {
 				player.openContainer(new SimpleNamedContainerProvider(SurvivalPlusContainer::new, SurvivalPlusContainer.title()));
 			}
 		});

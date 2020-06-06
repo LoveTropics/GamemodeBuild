@@ -1,8 +1,8 @@
 package com.lovetropics.survivalplus.container;
 
-import com.lovetropics.survivalplus.SPPlayerState;
 import com.lovetropics.survivalplus.SurvivalPlus;
 import com.lovetropics.survivalplus.message.OpenSPInventoryMessage;
+import com.lovetropics.survivalplus.state.SPClientState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
@@ -20,7 +20,7 @@ public final class PlayerInventoryHooks {
 		ClientPlayerEntity player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
-		if (!SPPlayerState.isActive(player)) {
+		if (!SPClientState.isActive()) {
 			return;
 		}
 		
