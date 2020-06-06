@@ -234,8 +234,8 @@ public class SurvivalPlusContainer extends Container {
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
 		ItemStack oldCursor = player.inventory.getItemStack().copy();
 		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
-		if (!oldCursor.isEmpty()) {
-			ItemStack newCursor = player.inventory.getItemStack();
+		ItemStack newCursor = player.inventory.getItemStack();
+		if (!oldCursor.isEmpty() && SPStackMarker.isMarked(oldCursor) && SPStackMarker.isMarked(newCursor)) {
 			if (!oldCursor.isItemEqual(newCursor)) {
 				player.inventory.setItemStack(ItemStack.EMPTY);
 			} else {
