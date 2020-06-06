@@ -1,6 +1,6 @@
 package com.lovetropics.survivalplus;
 
-import com.lovetropics.survivalplus.message.SetSPEnabledMessage;
+import com.lovetropics.survivalplus.message.SetSPActiveMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.settings.KeyBinding;
@@ -22,10 +22,10 @@ public class SPKeyBindings {
 		if (event.phase == Phase.END && SWITCH_MODE.isPressed()) {
 			ClientPlayerEntity player = Minecraft.getInstance().player;
 			if (player != null) {
-				boolean enabled = !SPPlayerState.isEnabled(player);
+				boolean enabled = !SPPlayerState.isActive(player);
 				
-				SurvivalPlus.NETWORK.sendToServer(new SetSPEnabledMessage(enabled));
-				SPPlayerState.setEnabled(player, enabled);
+				SurvivalPlus.NETWORK.sendToServer(new SetSPActiveMessage(enabled));
+				SPPlayerState.setActive(player, enabled);
 			}
 		}
 	}

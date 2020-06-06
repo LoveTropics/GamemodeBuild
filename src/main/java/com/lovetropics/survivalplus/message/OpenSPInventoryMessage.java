@@ -21,7 +21,7 @@ public final class OpenSPInventoryMessage {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			ServerPlayerEntity player = ctx.getSender();
-			if (player != null && SPPlayerState.isEnabled(player)) {
+			if (player != null && SPPlayerState.isActive(player)) {
 				player.openContainer(new SimpleNamedContainerProvider(SurvivalPlusContainer::new, SurvivalPlusContainer.title()));
 			}
 		});

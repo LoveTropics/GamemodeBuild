@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import com.lovetropics.survivalplus.command.ItemFilterArgument;
 import com.lovetropics.survivalplus.command.SurvivalPlusCommand;
 import com.lovetropics.survivalplus.message.OpenSPInventoryMessage;
-import com.lovetropics.survivalplus.message.SetSPEnabledMessage;
+import com.lovetropics.survivalplus.message.SetSPActiveMessage;
 import com.lovetropics.survivalplus.message.SetSPScrollMessage;
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
@@ -56,9 +56,9 @@ public class SurvivalPlus {
 				.consumer(OpenSPInventoryMessage::handle)
 				.add();
 		
-		NETWORK.messageBuilder(SetSPEnabledMessage.class, 1)
-				.encoder(SetSPEnabledMessage::serialize).decoder(SetSPEnabledMessage::deserialize)
-				.consumer(SetSPEnabledMessage::handle)
+		NETWORK.messageBuilder(SetSPActiveMessage.class, 1)
+				.encoder(SetSPActiveMessage::serialize).decoder(SetSPActiveMessage::deserialize)
+				.consumer(SetSPActiveMessage::handle)
 				.add();
 		
 		NETWORK.messageBuilder(SetSPScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
