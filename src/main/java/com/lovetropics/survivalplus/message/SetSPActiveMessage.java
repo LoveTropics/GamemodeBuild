@@ -12,6 +12,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -55,15 +56,18 @@ public final class SetSPActiveMessage {
 					}
 				}
 			} else if (ctx.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-				DistExecutor.runWhenOn(Dist.CLIENT,  () -> () -> {
-					ClientPlayerEntity player = Minecraft.getInstance().player;
-					if (player != null) {
-						SPPlayerState.setActive(player, message.enabled);
-					}
-				});
+				DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> setClientState(message.enabled));
 			}
 		});
 		
 		return true;
+	}
+	
+	@OnlyIn(Dist.CLIENT)
+	private static void setClientState(boolean state) {
+		ClientPlayerEntity player = Minecraft.getInstance().player;
+		if (player != null) {
+			SPPlayerState.setActive(player, state);
+		}
 	}
 }
