@@ -231,8 +231,18 @@ public class SurvivalPlusContainer extends Container {
 	
 	@Override
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
-		this.takeStacks = true;
+		this.takeStacks = clickTypeIn == ClickType.SWAP;
+		ItemStack oldCursor = player.inventory.getItemStack().copy();
 		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
+		if (!oldCursor.isEmpty()) {
+			ItemStack newCursor = player.inventory.getItemStack();
+			if (!oldCursor.isItemEqual(newCursor)) {
+				player.inventory.setItemStack(ItemStack.EMPTY);
+			} else {
+				newCursor.setCount(Math.max(oldCursor.getCount(), newCursor.getCount()));
+				player.inventory.setItemStack(newCursor);
+			}
+		}
 		this.takeStacks = false;
 		return ret;
 	}
