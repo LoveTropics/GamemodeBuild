@@ -34,20 +34,36 @@ public class GBConfigs {
 			enabled = builder.comment("Enable SurvivalPlus for all players").define("enabled", true);
 		}
 		
-		public void addWhitelist(String entry) {
-			this.modifyWhitelist(whitelist -> whitelist.add(entry));
+		public void addWhitelist(String entry, boolean save) {
+			this.modifyWhitelist(whitelist -> whitelist.add(entry), save);
 		}
 		
-		public void addBlacklist(String entry) {
-			this.modifyBlacklist(blacklist -> blacklist.add(entry));
+		public void addBlacklist(String entry, boolean save) {
+			this.modifyBlacklist(blacklist -> blacklist.add(entry), save);
 		}
 		
-		public boolean removeWhitelist(String entry) {
-			return this.modifyWhitelist(whitelist -> whitelist.remove(entry));
+		public boolean removeWhitelist(String entry, boolean save) {
+			return this.modifyWhitelist(whitelist -> whitelist.remove(entry), save);
 		}
 		
-		public boolean removeBlacklist(String entry) {
-			return this.modifyBlacklist(blacklist -> blacklist.remove(entry));
+		public boolean removeBlacklist(String entry, boolean save) {
+			return this.modifyBlacklist(blacklist -> blacklist.remove(entry), save);
+		}
+		
+		public int clearWhitelist(boolean save) {
+			return GBConfigs.SERVER.modifyWhitelist(whitelist -> {
+				int size = whitelist.size();
+				whitelist.clear();
+				return size;
+			}, save);
+		}
+		
+		public int clearBlacklist(boolean save) {
+			return GBConfigs.SERVER.modifyBlacklist(blacklist -> {
+				int size = blacklist.size();
+				blacklist.clear();
+				return size;
+			}, save);
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -60,25 +76,29 @@ public class GBConfigs {
 			return ((List<String>) this.blacklist.get()).stream();
 		}
 		
-		public <T> T modifyWhitelist(Function<List<String>, T> function) {
+		public <T> T modifyWhitelist(Function<List<String>, T> function, boolean save) {
 			@SuppressWarnings("unchecked")
 			List<String> whitelist = (List<String>) this.whitelist.get();
 			T result = function.apply(whitelist);
 			
 			this.whitelist.set(whitelist);
-			this.whitelist.save();
+			if (save) {
+				this.whitelist.save();
+			}
 			this.resetFilter();
 			
 			return result;
 		}
 		
-		public <T> T modifyBlacklist(Function<List<String>, T> function) {
+		public <T> T modifyBlacklist(Function<List<String>, T> function, boolean save) {
 			@SuppressWarnings("unchecked")
 			List<String> blacklist = (List<String>) this.blacklist.get();
 			T result = function.apply(blacklist);
 			
 			this.blacklist.set(blacklist);
-			this.blacklist.save();
+			if (save) {
+				this.blacklist.save();
+			}
 			this.resetFilter();
 			
 			return result;
