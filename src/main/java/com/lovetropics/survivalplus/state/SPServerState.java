@@ -48,6 +48,14 @@ public final class SPServerState {
 		return isEnabledFor(player) && SPPlayerStore.isActive(player);
 	}
 	
+	public static void switchInventories(ServerPlayerEntity player, boolean state) {
+		if (state) {
+			SPPlayerStore.switchToSPInventory(player);
+		} else {
+			SPPlayerStore.switchToPlayerInventory(player);
+		}
+	}
+	
 	private static void notifyPlayerActivity(ServerPlayerEntity player) {
 		SetSPActiveMessage message = new SetSPActiveMessage(isActiveFor(player));
 		SurvivalPlus.NETWORK.send(PacketDistributor.PLAYER.with(() -> player), message);

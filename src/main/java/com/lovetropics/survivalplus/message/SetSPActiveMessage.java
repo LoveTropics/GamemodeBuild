@@ -2,9 +2,9 @@ package com.lovetropics.survivalplus.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.survivalplus.container.SPStackMarker;
 import com.lovetropics.survivalplus.state.SPClientState;
 import com.lovetropics.survivalplus.state.SPServerState;
+
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ChatType;
@@ -40,15 +40,16 @@ public final class SetSPActiveMessage {
 						player.sendMessage(new StringTextComponent("SurvivalPlus is disabled!"), ChatType.GAME_INFO);
 					} else {
 						SPServerState.setActiveFor(player, message.enabled);
+						SPServerState.switchInventories(player, message.enabled);
 						if (message.enabled) {
 							player.sendMessage(new StringTextComponent("SurvivalPlus activated"), ChatType.GAME_INFO);
 						} else {
-							// Clear marked stacks from inventory
-							for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-								if (SPStackMarker.isMarked(player.inventory.getStackInSlot(i))) {
-									player.inventory.removeStackFromSlot(i);
-								}
-							}
+//							// Clear marked stacks from inventory
+//							for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+//								if (SPStackMarker.isMarked(player.inventory.getStackInSlot(i))) {
+//									player.inventory.removeStackFromSlot(i);
+//								}
+//							}
 							player.sendMessage(new StringTextComponent("SurvivalPlus deactivated"), ChatType.GAME_INFO);
 						}
 					}
