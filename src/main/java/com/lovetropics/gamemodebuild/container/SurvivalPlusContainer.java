@@ -1,10 +1,11 @@
-package com.lovetropics.survivalplus.container;
+package com.lovetropics.gamemodebuild.container;
 
 import java.util.List;
 
-import com.lovetropics.survivalplus.SPConfigs;
-import com.lovetropics.survivalplus.SurvivalPlus;
-import com.lovetropics.survivalplus.message.SetSPScrollMessage;
+import com.lovetropics.gamemodebuild.SPConfigs;
+import com.lovetropics.gamemodebuild.SurvivalPlus;
+import com.lovetropics.gamemodebuild.message.SetSPScrollMessage;
+
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;

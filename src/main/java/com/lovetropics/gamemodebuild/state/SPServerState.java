@@ -1,8 +1,9 @@
-package com.lovetropics.survivalplus.state;
+package com.lovetropics.gamemodebuild.state;
 
-import com.lovetropics.survivalplus.SPConfigs;
-import com.lovetropics.survivalplus.SurvivalPlus;
-import com.lovetropics.survivalplus.message.SetSPActiveMessage;
+import com.lovetropics.gamemodebuild.SPConfigs;
+import com.lovetropics.gamemodebuild.SurvivalPlus;
+import com.lovetropics.gamemodebuild.message.SetSPActiveMessage;
+
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;

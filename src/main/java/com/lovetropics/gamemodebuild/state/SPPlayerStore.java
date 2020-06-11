@@ -1,6 +1,7 @@
-package com.lovetropics.survivalplus.state;
+package com.lovetropics.gamemodebuild.state;
 
-import com.lovetropics.survivalplus.SurvivalPlus;
+import com.lovetropics.gamemodebuild.SurvivalPlus;
+
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;

@@ -1,6 +1,6 @@
-package com.lovetropics.survivalplus.container;
+package com.lovetropics.gamemodebuild.container;
 
-import com.lovetropics.survivalplus.SurvivalPlus;
+import com.lovetropics.gamemodebuild.SurvivalPlus;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;

@@ -1,8 +1,9 @@
-package com.lovetropics.survivalplus.message;
+package com.lovetropics.gamemodebuild.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.survivalplus.container.SurvivalPlusContainer;
+import com.lovetropics.gamemodebuild.container.SurvivalPlusContainer;
+
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkDirection;

@@ -1,4 +1,4 @@
-package com.lovetropics.survivalplus.state;
+package com.lovetropics.gamemodebuild.state;
 
 public final class SPClientState {
 	private static boolean active;

@@ -12,8 +12,8 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
 version = '1.0.2'
-group = 'com.lovetropics.survivalplus' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'SurvivalPlus'
+group = 'com.lovetropics.gamemodebuild' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'GamemodeBuild'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
@@ -26,7 +26,7 @@ minecraft {
     // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
-        	taskName 'sp_client'
+        	taskName 'gb_client'
         	
             workingDirectory project.file('run')
 
@@ -41,7 +41,7 @@ minecraft {
         }
 
         server {
-        	taskName 'sp_server'
+        	taskName 'gb_server'
         	
             workingDirectory project.file('run')
 
@@ -56,7 +56,7 @@ minecraft {
         }
 
         data {
-        	taskName 'sp_data'
+        	taskName 'gb_data'
         	
             workingDirectory project.file('run')
 
@@ -85,7 +85,7 @@ dependencies {
 jar {
     manifest {
         attributes([
-            "Specification-Title": "survivalplus",
+            "Specification-Title": "gamemodebuild",
             "Specification-Vendor": "lovetropics",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,

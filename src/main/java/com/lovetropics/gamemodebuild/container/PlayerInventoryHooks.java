@@ -1,8 +1,9 @@
-package com.lovetropics.survivalplus.container;
+package com.lovetropics.gamemodebuild.container;
 
-import com.lovetropics.survivalplus.SurvivalPlus;
-import com.lovetropics.survivalplus.message.OpenSPInventoryMessage;
-import com.lovetropics.survivalplus.state.SPClientState;
+import com.lovetropics.gamemodebuild.SurvivalPlus;
+import com.lovetropics.gamemodebuild.message.OpenSPInventoryMessage;
+import com.lovetropics.gamemodebuild.state.SPClientState;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
