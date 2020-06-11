@@ -1,4 +1,4 @@
-package com.lovetropics.survivalplus.command;
+package com.lovetropics.gamemodebuild.command;
 
 import java.util.Arrays;
 import java.util.Collection;

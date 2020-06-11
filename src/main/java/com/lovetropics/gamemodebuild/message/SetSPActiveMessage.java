@@ -1,9 +1,9 @@
-package com.lovetropics.survivalplus.message;
+package com.lovetropics.gamemodebuild.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.survivalplus.state.SPClientState;
-import com.lovetropics.survivalplus.state.SPServerState;
+import com.lovetropics.gamemodebuild.state.SPClientState;
+import com.lovetropics.gamemodebuild.state.SPServerState;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;

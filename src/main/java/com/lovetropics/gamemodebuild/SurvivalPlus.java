@@ -1,13 +1,14 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.gamemodebuild;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.lovetropics.survivalplus.command.ItemFilterArgument;
-import com.lovetropics.survivalplus.command.SurvivalPlusCommand;
-import com.lovetropics.survivalplus.message.OpenSPInventoryMessage;
-import com.lovetropics.survivalplus.message.SetSPActiveMessage;
-import com.lovetropics.survivalplus.message.SetSPScrollMessage;
+import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
+import com.lovetropics.gamemodebuild.command.SurvivalPlusCommand;
+import com.lovetropics.gamemodebuild.message.OpenSPInventoryMessage;
+import com.lovetropics.gamemodebuild.message.SetSPActiveMessage;
+import com.lovetropics.gamemodebuild.message.SetSPScrollMessage;
+
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.util.ResourceLocation;
@@ -26,7 +27,7 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 @Mod(SurvivalPlus.MODID)
 public class SurvivalPlus {
-	public static final String MODID = "survivalplus";
+	public static final String MODID = "gamemodebuild";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	

@@ -1,7 +1,5 @@
-package com.lovetropics.survivalplus;
+package com.lovetropics.gamemodebuild;
 
-import com.lovetropics.survivalplus.message.SetSPActiveMessage;
-import com.lovetropics.survivalplus.state.SPClientState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.settings.KeyBinding;
@@ -12,6 +10,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import org.lwjgl.glfw.GLFW;
+
+import com.lovetropics.gamemodebuild.message.SetSPActiveMessage;
+import com.lovetropics.gamemodebuild.state.SPClientState;
 
 @EventBusSubscriber(modid = SurvivalPlus.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
 public class SPKeyBindings {

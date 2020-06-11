@@ -1,13 +1,13 @@
-package com.lovetropics.survivalplus.command;
+package com.lovetropics.gamemodebuild.command;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-import com.lovetropics.survivalplus.SPConfigs;
-import com.lovetropics.survivalplus.state.SPPlayerStore;
-import com.lovetropics.survivalplus.state.SPServerState;
+import com.lovetropics.gamemodebuild.SPConfigs;
+import com.lovetropics.gamemodebuild.state.SPPlayerStore;
+import com.lovetropics.gamemodebuild.state.SPServerState;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
