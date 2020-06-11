@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
+import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
@@ -66,6 +67,11 @@ public class GamemodeBuild {
 		NETWORK.messageBuilder(SetScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
 				.encoder(SetScrollMessage::serialize).decoder(SetScrollMessage::deserialize)
 				.consumer(SetScrollMessage::handle)
+				.add();
+		
+		NETWORK.messageBuilder(ListUpdateMessage.class, 3, NetworkDirection.PLAY_TO_CLIENT)
+				.encoder(ListUpdateMessage::serialize).decoder(ListUpdateMessage::new)
+				.consumer(ListUpdateMessage::handle)
 				.add();
 		
 		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));

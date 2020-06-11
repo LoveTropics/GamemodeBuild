@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import com.lovetropics.gamemodebuild.state.GBServerState;
 import com.mojang.authlib.GameProfile;
@@ -20,10 +21,12 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
 import net.minecraft.command.arguments.GameProfileArgument;
+import net.minecraft.entity.ai.brain.task.UpdateActivityTask;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import static net.minecraft.command.Commands.argument;
 import static net.minecraft.command.Commands.literal;
@@ -101,7 +104,8 @@ public final class GamemodeBuildCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		GBConfigs.SERVER.addWhitelist(entry);
+		GBConfigs.SERVER.addWhitelist(entry, true);
+		GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(true, true, entry));
 		ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to whitelist"), false);
 		
 		return Command.SINGLE_SUCCESS;
@@ -111,7 +115,8 @@ public final class GamemodeBuildCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		GBConfigs.SERVER.addBlacklist(entry);
+		GBConfigs.SERVER.addBlacklist(entry, true);
+		GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(false, true, entry));
 		ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to blacklist"), false);
 		
 		return Command.SINGLE_SUCCESS;
@@ -121,7 +126,8 @@ public final class GamemodeBuildCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		if (GBConfigs.SERVER.removeWhitelist(entry)) {
+		if (GBConfigs.SERVER.removeWhitelist(entry, true)) {
+			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(true, false, entry));
 			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from whitelist"), false);
 		} else {
 			throw FILTER_DID_NOT_EXIST.create();
@@ -134,7 +140,8 @@ public final class GamemodeBuildCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		if (GBConfigs.SERVER.removeBlacklist(entry)) {
+		if (GBConfigs.SERVER.removeBlacklist(entry, true)) {
+			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(false, false, entry));
 			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from blacklist"), false);
 		} else {
 			throw FILTER_DID_NOT_EXIST.create();
@@ -144,11 +151,8 @@ public final class GamemodeBuildCommand {
 	}
 	
 	private static int clearWhitelist(CommandContext<CommandSource> ctx) {
-		int count = GBConfigs.SERVER.modifyWhitelist(whitelist -> {
-			int size = whitelist.size();
-			whitelist.clear();
-			return size;
-		});
+		int count = GBConfigs.SERVER.clearWhitelist(true);
+		GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(true, false, null));
 		
 		ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " whitelist entries"), false);
 		
@@ -156,11 +160,8 @@ public final class GamemodeBuildCommand {
 	}
 	
 	private static int clearBlacklist(CommandContext<CommandSource> ctx) {
-		int count = GBConfigs.SERVER.modifyBlacklist(blacklist -> {
-			int size = blacklist.size();
-			blacklist.clear();
-			return size;
-		});
+		int count = GBConfigs.SERVER.clearBlacklist(true);
+		GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(false, false, null));
 		
 		ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " blacklist entries"), false);
 		
