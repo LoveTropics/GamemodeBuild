@@ -11,11 +11,11 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import org.lwjgl.glfw.GLFW;
 
-import com.lovetropics.gamemodebuild.message.SetSPActiveMessage;
-import com.lovetropics.gamemodebuild.state.SPClientState;
+import com.lovetropics.gamemodebuild.message.SetActiveMessage;
+import com.lovetropics.gamemodebuild.state.GBClientState;
 
-@EventBusSubscriber(modid = SurvivalPlus.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
-public class SPKeyBindings {
+@EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
+public class GBKeyBindings {
 	
 	public static final KeyBinding SWITCH_MODE = new KeyBinding("Enable/Disable Survival+ Mode", GLFW.GLFW_KEY_P, "Survival+");
 	
@@ -25,8 +25,8 @@ public class SPKeyBindings {
 			ClientPlayerEntity player = Minecraft.getInstance().player;
 			if (player != null) {
 				// don't set local state: await confirmation from the server
-				boolean active = !SPClientState.isActive();
-				SurvivalPlus.NETWORK.sendToServer(new SetSPActiveMessage(active));
+				boolean active = !GBClientState.isActive();
+				GamemodeBuild.NETWORK.sendToServer(new SetActiveMessage(active));
 			}
 		}
 	}

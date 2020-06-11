@@ -2,8 +2,9 @@ package com.lovetropics.gamemodebuild.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.gamemodebuild.state.SPClientState;
-import com.lovetropics.gamemodebuild.state.SPServerState;
+import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.state.GBClientState;
+import com.lovetropics.gamemodebuild.state.GBServerState;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -15,10 +16,10 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-public final class SetSPActiveMessage {
+public final class SetActiveMessage {
 	private final boolean enabled;
 	
-	public SetSPActiveMessage(boolean enabled) {
+	public SetActiveMessage(boolean enabled) {
 		this.enabled = enabled;
 	}
 	
@@ -26,23 +27,23 @@ public final class SetSPActiveMessage {
 		buffer.writeBoolean(this.enabled);
 	}
 	
-	public static SetSPActiveMessage deserialize(PacketBuffer buffer) {
-		return new SetSPActiveMessage(buffer.readBoolean());
+	public static SetActiveMessage deserialize(PacketBuffer buffer) {
+		return new SetActiveMessage(buffer.readBoolean());
 	}
 	
-	public static boolean handle(SetSPActiveMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
+	public static boolean handle(SetActiveMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player != null) {
-					if (!SPServerState.isEnabledFor(player)) {
-						player.sendMessage(new StringTextComponent("SurvivalPlus is disabled!"), ChatType.GAME_INFO);
+					if (!GBServerState.isEnabledFor(player)) {
+						player.sendMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), ChatType.GAME_INFO);
 					} else {
-						SPServerState.setActiveFor(player, message.enabled);
-						SPServerState.switchInventories(player, message.enabled);
+						GBServerState.setActiveFor(player, message.enabled);
+						GBServerState.switchInventories(player, message.enabled);
 						if (message.enabled) {
-							player.sendMessage(new StringTextComponent("SurvivalPlus activated"), ChatType.GAME_INFO);
+							player.sendMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), ChatType.GAME_INFO);
 						} else {
 //							// Clear marked stacks from inventory
 //							for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
@@ -50,7 +51,7 @@ public final class SetSPActiveMessage {
 //									player.inventory.removeStackFromSlot(i);
 //								}
 //							}
-							player.sendMessage(new StringTextComponent("SurvivalPlus deactivated"), ChatType.GAME_INFO);
+							player.sendMessage(new StringTextComponent(GamemodeBuild.NAME + " deactivated"), ChatType.GAME_INFO);
 						}
 					}
 				}
@@ -64,6 +65,6 @@ public final class SetSPActiveMessage {
 	
 	@OnlyIn(Dist.CLIENT)
 	private static void setClientState(boolean state) {
-		SPClientState.setActive(state);
+		GBClientState.setActive(state);
 	}
 }

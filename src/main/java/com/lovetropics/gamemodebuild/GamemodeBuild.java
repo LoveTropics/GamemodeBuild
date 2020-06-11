@@ -3,11 +3,11 @@ package com.lovetropics.gamemodebuild;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
-import com.lovetropics.gamemodebuild.command.SurvivalPlusCommand;
-import com.lovetropics.gamemodebuild.message.OpenSPInventoryMessage;
-import com.lovetropics.gamemodebuild.message.SetSPActiveMessage;
-import com.lovetropics.gamemodebuild.message.SetSPScrollMessage;
+import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
+import com.lovetropics.gamemodebuild.message.SetActiveMessage;
+import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
@@ -25,9 +25,10 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
-@Mod(SurvivalPlus.MODID)
-public class SurvivalPlus {
+@Mod(GamemodeBuild.MODID)
+public class GamemodeBuild {
 	public static final String MODID = "gamemodebuild";
+	public static final String NAME = "Build Mode";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -39,7 +40,7 @@ public class SurvivalPlus {
 			.serverAcceptedVersions(NET_PROTOCOL::equals)
 			.simpleChannel();
 	
-	public SurvivalPlus() {
+	public GamemodeBuild() {
 		// Register the setup method for modloading
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 		// Register the doClientStuff method for modloading
@@ -48,34 +49,34 @@ public class SurvivalPlus {
 		// Register ourselves for server and other game events we are interested in
 		MinecraftForge.EVENT_BUS.register(this);
 		
-		ModLoadingContext.get().registerConfig(Type.SERVER, SPConfigs.serverSpec);
+		ModLoadingContext.get().registerConfig(Type.SERVER, GBConfigs.serverSpec);
 	}
 	
 	private void setup(final FMLCommonSetupEvent event) {
-		NETWORK.messageBuilder(OpenSPInventoryMessage.class, 0, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(OpenSPInventoryMessage::serialize).decoder(OpenSPInventoryMessage::deserialize)
-				.consumer(OpenSPInventoryMessage::handle)
+		NETWORK.messageBuilder(OpenBuildInventoryMessage.class, 0, NetworkDirection.PLAY_TO_SERVER)
+				.encoder(OpenBuildInventoryMessage::serialize).decoder(OpenBuildInventoryMessage::deserialize)
+				.consumer(OpenBuildInventoryMessage::handle)
 				.add();
 		
-		NETWORK.messageBuilder(SetSPActiveMessage.class, 1)
-				.encoder(SetSPActiveMessage::serialize).decoder(SetSPActiveMessage::deserialize)
-				.consumer(SetSPActiveMessage::handle)
+		NETWORK.messageBuilder(SetActiveMessage.class, 1)
+				.encoder(SetActiveMessage::serialize).decoder(SetActiveMessage::deserialize)
+				.consumer(SetActiveMessage::handle)
 				.add();
 		
-		NETWORK.messageBuilder(SetSPScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(SetSPScrollMessage::serialize).decoder(SetSPScrollMessage::deserialize)
-				.consumer(SetSPScrollMessage::handle)
+		NETWORK.messageBuilder(SetScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
+				.encoder(SetScrollMessage::serialize).decoder(SetScrollMessage::deserialize)
+				.consumer(SetScrollMessage::handle)
 				.add();
 		
-		ArgumentTypes.register(SurvivalPlus.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
+		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
 	}
 	
 	private void doClientStuff(final FMLClientSetupEvent event) {
-		SPKeyBindings.register();
+		GBKeyBindings.register();
 	}
 	
 	@SubscribeEvent
 	public void serverStarting(FMLServerStartingEvent event) {
-		SurvivalPlusCommand.register(event.getCommandDispatcher());
+		GamemodeBuildCommand.register(event.getCommandDispatcher());
 	}
 }

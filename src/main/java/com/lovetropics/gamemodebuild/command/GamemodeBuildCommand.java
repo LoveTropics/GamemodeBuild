@@ -5,9 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-import com.lovetropics.gamemodebuild.SPConfigs;
-import com.lovetropics.gamemodebuild.state.SPPlayerStore;
-import com.lovetropics.gamemodebuild.state.SPServerState;
+import com.lovetropics.gamemodebuild.GBConfigs;
+import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.state.GBPlayerStore;
+import com.lovetropics.gamemodebuild.state.GBServerState;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -27,12 +28,12 @@ import net.minecraft.util.text.TextFormatting;
 import static net.minecraft.command.Commands.argument;
 import static net.minecraft.command.Commands.literal;
 
-public final class SurvivalPlusCommand {
+public final class GamemodeBuildCommand {
 	private static final SimpleCommandExceptionType FILTER_DID_NOT_EXIST = new SimpleCommandExceptionType(new StringTextComponent("That filter did not exist!"));
 	
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		// @formatter:off
-		dispatcher.register(literal("survivalplus")
+		dispatcher.register(literal("build")
 				.then(literal("disable")
 					.requires(src -> src.hasPermissionLevel(4))
 					.executes(ctx -> enable(ctx, null, false))
@@ -47,25 +48,25 @@ public final class SurvivalPlusCommand {
 					.requires(src -> src.hasPermissionLevel(4))
 					.then(literal("add")
 						.then(argument("item", ItemFilterArgument.itemFilter())
-						.executes(SurvivalPlusCommand::addWhitelist)))
+						.executes(GamemodeBuildCommand::addWhitelist)))
 					.then(literal("remove")
 						.then(argument("item", ItemFilterArgument.itemFilter())
 						.suggests(whitelistSuggestions())
-						.executes(SurvivalPlusCommand::removeWhitelist))
+						.executes(GamemodeBuildCommand::removeWhitelist))
 					.then(literal("clear")
-						.executes(SurvivalPlusCommand::clearWhitelist)))
+						.executes(GamemodeBuildCommand::clearWhitelist)))
 				)
 				.then(literal("blacklist")
 					.requires(src -> src.hasPermissionLevel(4))
 					.then(literal("add")
 						.then(argument("item", ItemFilterArgument.itemFilter())
-						.executes(SurvivalPlusCommand::addBlacklist)))
+						.executes(GamemodeBuildCommand::addBlacklist)))
 						.then(literal("remove")
 							.then(argument("item", ItemFilterArgument.itemFilter())
 							.suggests(blacklistSuggestions())
-							.executes(SurvivalPlusCommand::removeBlacklist))
+							.executes(GamemodeBuildCommand::removeBlacklist))
 						.then(literal("clear")
-							.executes(SurvivalPlusCommand::clearBlacklist)))
+							.executes(GamemodeBuildCommand::clearBlacklist)))
 				)
 		);
 		// @formatter:on
@@ -78,20 +79,20 @@ public final class SurvivalPlusCommand {
 		if (profiles != null) {
 			List<ServerPlayerEntity> players = profiles.stream()
 				   .map(g -> server.getPlayerList().getPlayerByUUID(g.getId()))
-				   .filter(p -> SPPlayerStore.isEnabled(p) != state)
+				   .filter(p -> GBPlayerStore.isEnabled(p) != state)
 				   .collect(Collectors.toList());
-			players.forEach(p -> SPServerState.setEnabledFor(p, state));
-			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " SurvivalPlus for " + players.size() + " player(s)"), false);
-			if (state && !SPServerState.isGloballyEnabled()) {
-				src.sendFeedback(new StringTextComponent("Warning: This will have no effect as SurvivalPlus is currently globally disabled!").applyTextStyle(TextFormatting.YELLOW), false);
+			players.forEach(p -> GBServerState.setEnabledFor(p, state));
+			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
+			if (state && !GBServerState.isGloballyEnabled()) {
+				src.sendFeedback(new StringTextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").applyTextStyle(TextFormatting.YELLOW), false);
 			}
 			return players.size();
 		} else {
-			if (state == SPServerState.isGloballyEnabled()) {
-				throw new CommandException(new StringTextComponent("SurvivalPlus is already " + (state ? "enabled" : "disabled")));
+			if (state == GBServerState.isGloballyEnabled()) {
+				throw new CommandException(new StringTextComponent(GamemodeBuild.NAME + " is already " + (state ? "enabled" : "disabled")));
 			}
-			SPServerState.setGloballyEnabled(server, state);
-			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " SurvivalPlus globally"), false);
+			GBServerState.setGloballyEnabled(server, state);
+			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
 			return Command.SINGLE_SUCCESS;
 		}
 	}
@@ -100,7 +101,7 @@ public final class SurvivalPlusCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		SPConfigs.SERVER.addWhitelist(entry);
+		GBConfigs.SERVER.addWhitelist(entry);
 		ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to whitelist"), false);
 		
 		return Command.SINGLE_SUCCESS;
@@ -110,7 +111,7 @@ public final class SurvivalPlusCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		SPConfigs.SERVER.addBlacklist(entry);
+		GBConfigs.SERVER.addBlacklist(entry);
 		ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to blacklist"), false);
 		
 		return Command.SINGLE_SUCCESS;
@@ -120,7 +121,7 @@ public final class SurvivalPlusCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		if (SPConfigs.SERVER.removeWhitelist(entry)) {
+		if (GBConfigs.SERVER.removeWhitelist(entry)) {
 			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from whitelist"), false);
 		} else {
 			throw FILTER_DID_NOT_EXIST.create();
@@ -133,7 +134,7 @@ public final class SurvivalPlusCommand {
 		ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 		
 		String entry = filter.asString();
-		if (SPConfigs.SERVER.removeBlacklist(entry)) {
+		if (GBConfigs.SERVER.removeBlacklist(entry)) {
 			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from blacklist"), false);
 		} else {
 			throw FILTER_DID_NOT_EXIST.create();
@@ -143,7 +144,7 @@ public final class SurvivalPlusCommand {
 	}
 	
 	private static int clearWhitelist(CommandContext<CommandSource> ctx) {
-		int count = SPConfigs.SERVER.modifyWhitelist(whitelist -> {
+		int count = GBConfigs.SERVER.modifyWhitelist(whitelist -> {
 			int size = whitelist.size();
 			whitelist.clear();
 			return size;
@@ -155,7 +156,7 @@ public final class SurvivalPlusCommand {
 	}
 	
 	private static int clearBlacklist(CommandContext<CommandSource> ctx) {
-		int count = SPConfigs.SERVER.modifyBlacklist(blacklist -> {
+		int count = GBConfigs.SERVER.modifyBlacklist(blacklist -> {
 			int size = blacklist.size();
 			blacklist.clear();
 			return size;
@@ -168,13 +169,13 @@ public final class SurvivalPlusCommand {
 	
 	private static SuggestionProvider<CommandSource> whitelistSuggestions() {
 		return (ctx, builder) -> {
-			return ISuggestionProvider.suggest(SPConfigs.SERVER.whitelist(), builder);
+			return ISuggestionProvider.suggest(GBConfigs.SERVER.whitelist(), builder);
 		};
 	}
 	
 	private static SuggestionProvider<CommandSource> blacklistSuggestions() {
 		return (ctx, builder) -> {
-			return ISuggestionProvider.suggest(SPConfigs.SERVER.blacklist(), builder);
+			return ISuggestionProvider.suggest(GBConfigs.SERVER.blacklist(), builder);
 		};
 	}
 }
