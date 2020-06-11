@@ -2,9 +2,9 @@ package com.lovetropics.gamemodebuild.container;
 
 import java.util.List;
 
-import com.lovetropics.gamemodebuild.SPConfigs;
-import com.lovetropics.gamemodebuild.SurvivalPlus;
-import com.lovetropics.gamemodebuild.message.SetSPScrollMessage;
+import com.lovetropics.gamemodebuild.GBConfigs;
+import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -25,23 +25,23 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.registries.ObjectHolder;
 
-@EventBusSubscriber(modid = SurvivalPlus.MODID, bus = Bus.MOD)
-public class SurvivalPlusContainer extends Container {
+@EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD)
+public class BuildContainer extends Container {
 	public static final int WIDTH = 9;
 	public static final int HEIGHT = 5;
 	
-	@ObjectHolder(SurvivalPlus.MODID + ":container")
-	public static final ContainerType<SurvivalPlusContainer> TYPE = null;
+	@ObjectHolder(GamemodeBuild.MODID + ":container")
+	public static final ContainerType<BuildContainer> TYPE = null;
 	
 	private static final ThreadLocal<Boolean> SUPPRESS_SEND_CHANGES = new ThreadLocal<>();
 	private boolean takeStacks = false;
 	
 	@SubscribeEvent
 	public static void onContainerRegistry(RegistryEvent.Register<ContainerType<?>> event) {
-		ContainerType<SurvivalPlusContainer> type = new ContainerType<>(SurvivalPlusContainer::new);
+		ContainerType<BuildContainer> type = new ContainerType<>(BuildContainer::new);
 		event.getRegistry().register(type.setRegistryName("container"));
 		
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.registerFactory(type, SurvivalPlusScreen::new));
+		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.registerFactory(type, BuildScreen::new));
 	}
 	
 	public static StringTextComponent title() {
@@ -78,7 +78,7 @@ public class SurvivalPlusContainer extends Container {
 				if (takeStacks) {
 					stack.setCount(stack.getMaxStackSize());
 				}
-				SPStackMarker.mark(stack);
+				GBStackMarker.mark(stack);
 				return stack;
 			}
 			return ItemStack.EMPTY;
@@ -128,7 +128,7 @@ public class SurvivalPlusContainer extends Container {
 		@Override
 		public boolean isItemValid(ItemStack stack) {
 			// only allow items to be deleted if they are from the gui
-			return SPStackMarker.isMarked(stack);
+			return GBStackMarker.isMarked(stack);
 		}
 		
 		public void setScrollOffset(int offset) {
@@ -161,15 +161,15 @@ public class SurvivalPlusContainer extends Container {
 	
 	private int scrollOffset;
 	
-	public SurvivalPlusContainer(int windowId, PlayerInventory playerInventory) {
+	public BuildContainer(int windowId, PlayerInventory playerInventory) {
 		this(windowId, playerInventory, playerInventory.player);
 	}
 	
-	public SurvivalPlusContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+	public BuildContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
 		super(TYPE, windowId);
 		this.player = player;
 		
-		List<ItemStack> buildingStacks = SPConfigs.SERVER.getFilter().getAllStacks();
+		List<ItemStack> buildingStacks = GBConfigs.SERVER.getFilter().getAllStacks();
 		this.inventory = new InfiniteInventory(player, buildingStacks);
 		
 		for (int y = 0; y < HEIGHT; y++) {
@@ -191,7 +191,7 @@ public class SurvivalPlusContainer extends Container {
 			this.scrollOffset = scrollOffset;
 			
 			if (player.world.isRemote) {
-				SurvivalPlus.NETWORK.sendToServer(new SetSPScrollMessage(scrollOffset));
+				GamemodeBuild.NETWORK.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
 			for (Slot slot : this.inventorySlots) {
@@ -236,7 +236,7 @@ public class SurvivalPlusContainer extends Container {
 		ItemStack oldCursor = player.inventory.getItemStack().copy();
 		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
 		ItemStack newCursor = player.inventory.getItemStack();
-		if (!oldCursor.isEmpty() && SPStackMarker.isMarked(oldCursor) && SPStackMarker.isMarked(newCursor)) {
+		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
 			if (!oldCursor.isItemEqual(newCursor)) {
 				player.inventory.setItemStack(ItemStack.EMPTY);
 			} else {
@@ -268,7 +268,7 @@ public class SurvivalPlusContainer extends Container {
 				this.mergeItemStack(stack, 5 * 9, this.inventorySlots.size(), false);
 				return ItemStack.EMPTY;
 			} else {
-				if (SPStackMarker.isMarked(stack)) {
+				if (GBStackMarker.isMarked(stack)) {
 					slot.putStack(ItemStack.EMPTY);
 				}
 				return ItemStack.EMPTY;

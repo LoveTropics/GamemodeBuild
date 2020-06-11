@@ -1,6 +1,6 @@
 package com.lovetropics.gamemodebuild.container;
 
-import com.lovetropics.gamemodebuild.SurvivalPlus;
+import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -8,16 +8,16 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 
-public class SurvivalPlusScreen extends ContainerScreen<SurvivalPlusContainer> {
+public class BuildScreen extends ContainerScreen<BuildContainer> {
 	
-	private static final ResourceLocation TEXTURE = new ResourceLocation(SurvivalPlus.MODID, "textures/gui/menu_nosearch.png");
+	private static final ResourceLocation TEXTURE = new ResourceLocation(GamemodeBuild.MODID, "textures/gui/menu_nosearch.png");
 	
 	private static final ResourceLocation TABS = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
 	
 	private float scrollAmount;
 	private boolean draggingScroll;
 	
-	public SurvivalPlusScreen(SurvivalPlusContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+	public BuildScreen(BuildContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
 		super(screenContainer, inv, titleIn);
 		this.xSize = 195;
 		this.ySize = 136;// + 28;

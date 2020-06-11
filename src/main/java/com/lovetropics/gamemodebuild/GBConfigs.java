@@ -17,8 +17,8 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.config.ModConfig;
 
-@EventBusSubscriber(modid = SurvivalPlus.MODID, bus = Bus.MOD)
-public class SPConfigs {
+@EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD)
+public class GBConfigs {
 	
 	public static class Server {
 		

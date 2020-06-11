@@ -2,17 +2,17 @@ package com.lovetropics.gamemodebuild.message;
 
 import java.util.function.Supplier;
 
-import com.lovetropics.gamemodebuild.container.SurvivalPlusContainer;
+import com.lovetropics.gamemodebuild.container.BuildContainer;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-public final class SetSPScrollMessage {
+public final class SetScrollMessage {
 	private final int scrollOffset;
 	
-	public SetSPScrollMessage(int scrollOffset) {
+	public SetScrollMessage(int scrollOffset) {
 		this.scrollOffset = scrollOffset;
 	}
 	
@@ -20,19 +20,19 @@ public final class SetSPScrollMessage {
 		buffer.writeVarInt(this.scrollOffset);
 	}
 	
-	public static SetSPScrollMessage deserialize(PacketBuffer buffer) {
-		return new SetSPScrollMessage(buffer.readVarInt());
+	public static SetScrollMessage deserialize(PacketBuffer buffer) {
+		return new SetScrollMessage(buffer.readVarInt());
 	}
 	
-	public static boolean handle(SetSPScrollMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
+	public static boolean handle(SetScrollMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player == null) return;
 				
-				if (player.openContainer instanceof SurvivalPlusContainer) {
-					((SurvivalPlusContainer) player.openContainer).setScrollOffset(message.scrollOffset);
+				if (player.openContainer instanceof BuildContainer) {
+					((BuildContainer) player.openContainer).setScrollOffset(message.scrollOffset);
 				}
 			}
 		});

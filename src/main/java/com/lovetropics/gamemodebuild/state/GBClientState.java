@@ -1,13 +1,13 @@
 package com.lovetropics.gamemodebuild.state;
 
-public final class SPClientState {
+public final class GBClientState {
 	private static boolean active;
 	
 	public static void setActive(boolean active) {
-		SPClientState.active = active;
+		GBClientState.active = active;
 	}
 	
 	public static boolean isActive() {
-		return SPClientState.active;
+		return GBClientState.active;
 	}
 }
