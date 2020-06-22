@@ -1,12 +1,18 @@
 package com.lovetropics.gamemodebuild.container;
 
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
+import java.util.Locale;
 
+import com.google.common.base.Strings;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
@@ -15,6 +21,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.LanguageMap;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -50,11 +57,14 @@ public class BuildContainer extends Container {
 	
 	public class InfiniteInventory implements IInventory {
 		private final PlayerEntity player;
-		private List<ItemStack> items;
+		private final List<ItemStack> masterItems;
+		private final List<ItemStack> items;
 		
 		private InfiniteInventory(PlayerEntity player, List<ItemStack> items) {
 			this.player = player;
-			this.items = items;
+			this.masterItems = items;
+			this.items = new ArrayList<>();
+			this.setFilter(new BitSet());
 		}
 		
 		@Override
@@ -110,6 +120,32 @@ public class BuildContainer extends Container {
 		@Override
 		public boolean isUsableByPlayer(PlayerEntity player) {
 			return true;
+		}
+		
+		public void setFilter(BitSet filteredSlots) {
+			this.items.clear();
+			for (int i = 0; i < this.masterItems.size(); i++) {
+				if (!filteredSlots.get(i)) {
+					items.add(this.masterItems.get(i));
+				}
+			}
+		}
+
+		@OnlyIn(Dist.CLIENT)
+		public BitSet applyFilter(String filter) {
+			BitSet filteredSlots = new BitSet();
+			Locale locale = Minecraft.getInstance().getLanguageManager().getCurrentLanguage().getJavaLocale();
+			filter = filter.toLowerCase(locale);
+			if (!Strings.isNullOrEmpty(filter)) {
+				for (int i = 0; i < this.masterItems.size(); i++) {
+					ItemStack stack = this.masterItems.get(i);
+					if (stack.isEmpty() || !stack.getDisplayName().getUnformattedComponentText().toLowerCase(locale).contains(filter)) {
+						filteredSlots.set(i);
+					}
+				}
+			}
+			setFilter(filteredSlots);
+			return filteredSlots;
 		}
 	}
 	
@@ -208,6 +244,15 @@ public class BuildContainer extends Container {
 	
 	public boolean canScroll() {
 		return this.inventory.items.size() > WIDTH * HEIGHT;
+	}
+	
+	@OnlyIn(Dist.CLIENT)
+	public BitSet applyFilter(String filter) {
+		return ((InfiniteInventory)this.inventory).applyFilter(filter);
+	}
+	
+	public void setFilter(BitSet filteredSlots) {
+		((InfiniteInventory)this.inventory).setFilter(filteredSlots);
 	}
 	
 	@OnlyIn(Dist.CLIENT)

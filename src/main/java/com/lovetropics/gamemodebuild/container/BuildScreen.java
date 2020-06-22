@@ -1,8 +1,17 @@
 package com.lovetropics.gamemodebuild.container;
 
+import java.util.BitSet;
+import java.util.Objects;
+
+import org.lwjgl.glfw.GLFW;
+
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
@@ -10,9 +19,11 @@ import net.minecraft.util.text.ITextComponent;
 
 public class BuildScreen extends ContainerScreen<BuildContainer> {
 	
-	private static final ResourceLocation TEXTURE = new ResourceLocation(GamemodeBuild.MODID, "textures/gui/menu_nosearch.png");
+	private static final ResourceLocation TEXTURE = new ResourceLocation(GamemodeBuild.MODID, "textures/gui/menu.png");
 	
 	private static final ResourceLocation TABS = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
+	
+	private TextFieldWidget searchField;
 	
 	private float scrollAmount;
 	private boolean draggingScroll;
@@ -21,6 +32,54 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 		super(screenContainer, inv, titleIn);
 		this.xSize = 195;
 		this.ySize = 136;// + 28;
+	}
+	
+	@Override
+	protected void init() {
+		super.init();
+		
+        this.searchField = new TextFieldWidget(this.font, this.guiLeft + 82, this.guiTop + 6, 80, 9, I18n.format("itemGroup.search"));
+        this.searchField.setMaxStringLength(50);
+        this.searchField.setEnableBackgroundDrawing(false);
+        this.searchField.setVisible(true);
+        this.searchField.setTextColor(16777215);
+        this.children.add(this.searchField);
+	}
+	
+	@Override
+	public void tick() {
+		super.tick();
+		this.searchField.tick();
+	}
+	
+	private void updateSearch() {
+		BitSet filteredSlots = this.container.applyFilter(this.searchField.getText());
+		GamemodeBuild.NETWORK.sendToServer(new UpdateFilterMessage(filteredSlots));
+	}
+	
+	@Override
+	public boolean charTyped(char p_charTyped_1_, int p_charTyped_2_) {
+		String s = this.searchField.getText();
+		boolean ret = super.charTyped(p_charTyped_1_, p_charTyped_2_);
+		if (!Objects.equals(s, this.searchField.getText())) {
+			updateSearch();
+		}
+		return ret;
+	}
+
+	// Logic from CreativeScreen
+	@Override
+	public boolean keyPressed(int p_keyPressed_1_, int p_keyPressed_2_, int p_keyPressed_3_) {
+		String s = this.searchField.getText();
+		if (this.searchField.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_)) {
+			if (!Objects.equals(s, this.searchField.getText())) {
+				this.updateSearch();
+			}
+			return true;
+		} else {
+			return this.searchField.isFocused() && this.searchField.getVisible() && p_keyPressed_1_ != 256 ? true
+					: super.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
+		}
 	}
 	
 	@Override
@@ -54,6 +113,8 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 			Rect2i rect = this.scrollRect();
 			this.blit(rect.left, rect.top, 232, 0, rect.width, rect.height);
 		}
+		
+		this.searchField.render(mouseX, mouseY, partialTicks);
 	}
 	
 	@Override

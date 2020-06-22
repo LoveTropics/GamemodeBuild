@@ -9,6 +9,7 @@ import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
+import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
 
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
@@ -72,6 +73,11 @@ public class GamemodeBuild {
 		NETWORK.messageBuilder(ListUpdateMessage.class, 3, NetworkDirection.PLAY_TO_CLIENT)
 				.encoder(ListUpdateMessage::serialize).decoder(ListUpdateMessage::new)
 				.consumer(ListUpdateMessage::handle)
+				.add();
+		
+		NETWORK.messageBuilder(UpdateFilterMessage.class, 4, NetworkDirection.PLAY_TO_SERVER)
+				.encoder(UpdateFilterMessage::serialize).decoder(UpdateFilterMessage::new)
+				.consumer(UpdateFilterMessage::handle)
 				.add();
 		
 		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
