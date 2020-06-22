@@ -3,6 +3,7 @@ package com.lovetropics.gamemodebuild.container;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
 import com.lovetropics.gamemodebuild.state.GBClientState;
+import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -35,7 +36,7 @@ public final class PlayerInventoryHooks {
 	
 	@SubscribeEvent
 	public static void onToss(ItemTossEvent event) {
-		if (GBStackMarker.isMarked(event.getEntityItem().getItem())) {
+		if (GBPlayerStore.isActive(event.getPlayer()) || GBStackMarker.isMarked(event.getEntityItem().getItem())) {
 			event.setCanceled(true);
 		}
 	}
