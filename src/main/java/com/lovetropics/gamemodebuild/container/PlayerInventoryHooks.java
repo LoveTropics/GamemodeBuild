@@ -22,7 +22,7 @@ public final class PlayerInventoryHooks {
 		ClientPlayerEntity player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
-		if (!GBClientState.isActive()) {
+		if (!GBClientState.isActive() || player.isSneaking()) {
 			return;
 		}
 		
