@@ -1,18 +1,11 @@
 package com.lovetropics.gamemodebuild.container;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Locale;
-
 import com.google.common.base.Strings;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
@@ -21,7 +14,6 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.LanguageMap;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -31,6 +23,11 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.registries.ObjectHolder;
+
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Locale;
 
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD)
 public class BuildContainer extends Container {
@@ -80,28 +77,26 @@ public class BuildContainer extends Container {
 		public boolean isEmpty() {
 			return this.items.isEmpty();
 		}
-		
+
 		@Override
 		public ItemStack getStackInSlot(int index) {
-			if (index < this.items.size()) {
-				ItemStack stack = this.items.get(index).copy();
-				if (takeStacks) {
-					stack.setCount(stack.getMaxStackSize());
-				}
-				GBStackMarker.mark(stack);
-				return stack;
-			}
-			return ItemStack.EMPTY;
+			if (index >= this.items.size()) return ItemStack.EMPTY;
+
+			ItemStack stack = this.items.get(index).copy();
+			if (takeStacks) stack.setCount(stack.getMaxStackSize());
+			GBStackMarker.mark(stack);
+
+			return stack;
 		}
 		
 		@Override
 		public ItemStack decrStackSize(int index, int count) {
 			ItemStack stack = this.getStackInSlot(index);
-			if (!stack.isEmpty()) {
-				stack.setCount(count);
-				return stack;
-			}
-			return ItemStack.EMPTY;
+
+			if (stack.isEmpty()) return ItemStack.EMPTY;
+
+			stack.setCount(count);
+			return stack;
 		}
 		
 		@Override
@@ -123,7 +118,8 @@ public class BuildContainer extends Container {
 		}
 		
 		public void setFilter(BitSet filteredSlots) {
-			this.items.clear();
+			items.clear();
+
 			for (int i = 0; i < this.masterItems.size(); i++) {
 				if (!filteredSlots.get(i)) {
 					items.add(this.masterItems.get(i));
@@ -211,12 +207,12 @@ public class BuildContainer extends Container {
 		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x < WIDTH; x++) {
 				int i = x + y * WIDTH;
-				addSlot(new InfiniteSlot(inventory, i, 9 + x * 18, /*28 + */18 + y * 18));
+				addSlot(new InfiniteSlot(inventory, i, 9 + x * 18, 28 + 18 + y * 18));
 			}
 		}
 		
 		for (int h = 0; h < WIDTH; h++) {
-			this.addSlot(new Slot(playerInventory, h, 9 + h * 18, 112/* + 28*/));
+			this.addSlot(new Slot(playerInventory, h, 9 + h * 18, 112 + 28));
 		}
 	}
 	
@@ -248,11 +244,11 @@ public class BuildContainer extends Container {
 	
 	@OnlyIn(Dist.CLIENT)
 	public BitSet applyFilter(String filter) {
-		return ((InfiniteInventory)this.inventory).applyFilter(filter);
+		return this.inventory.applyFilter(filter);
 	}
 	
 	public void setFilter(BitSet filteredSlots) {
-		((InfiniteInventory)this.inventory).setFilter(filteredSlots);
+		this.inventory.setFilter(filteredSlots);
 	}
 	
 	@OnlyIn(Dist.CLIENT)
@@ -278,9 +274,11 @@ public class BuildContainer extends Container {
 	@Override
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
+
 		ItemStack oldCursor = player.inventory.getItemStack().copy();
 		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
 		ItemStack newCursor = player.inventory.getItemStack();
+
 		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
 			if (!oldCursor.isItemEqual(newCursor)) {
 				player.inventory.setItemStack(ItemStack.EMPTY);
@@ -289,6 +287,7 @@ public class BuildContainer extends Container {
 				player.inventory.setItemStack(newCursor);
 			}
 		}
+
 		this.takeStacks = false;
 		return ret;
 	}
