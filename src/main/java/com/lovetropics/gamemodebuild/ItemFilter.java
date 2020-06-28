@@ -53,11 +53,13 @@ public class ItemFilter {
 		}
 	}
 	
-	public static ItemFilter fromStrings(List<? extends String> whitelist, List<? extends String> blacklist) {
+	public static ItemFilter fromStrings(List<String> whitelist, List<String> blacklist) {
 		return new ItemFilter(parsePredicates(whitelist), parsePredicates(blacklist));
 	}
 	
-	private static List<Predicate<Item>> parsePredicates(List<? extends String> predicates) {
+	private static List<Predicate<Item>> parsePredicates(List<String> predicates) {
+		if (predicates == null) return new ArrayList<>();
+
 		return predicates.stream()
 				.map(ItemFilter::parsePredicate)
 				.collect(Collectors.toList());
