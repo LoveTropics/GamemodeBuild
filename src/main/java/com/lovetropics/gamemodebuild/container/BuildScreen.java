@@ -55,6 +55,8 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	private void updateSearch() {
 		BitSet filteredSlots = this.container.applyFilter(this.searchField.getText());
 		GamemodeBuild.NETWORK.sendToServer(new UpdateFilterMessage(filteredSlots));
+
+		updateScroll(0);
 	}
 	
 	@Override
@@ -108,10 +110,13 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 		
 		this.getMinecraft().getTextureManager().bindTexture(TABS);
 //		this.blit(this.guiLeft, this.guiTop, 0, 32, 28, 32);
-		
+
 		if (this.container.canScroll()) {
 			Rect2i rect = this.scrollRect();
 			this.blit(rect.left, rect.top, 232, 0, rect.width, rect.height);
+		} else {
+			Rect2i rect = this.scrollArea();
+			this.blit(rect.left, rect.top, 244, 0, rect.width, rect.height);
 		}
 		
 		this.searchField.render(mouseX, mouseY, partialTicks);
