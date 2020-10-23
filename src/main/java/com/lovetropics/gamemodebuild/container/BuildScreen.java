@@ -55,6 +55,7 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	private void updateSearch() {
 		BitSet filteredSlots = this.container.applyFilter(this.searchField.getText());
 		GamemodeBuild.NETWORK.sendToServer(new UpdateFilterMessage(filteredSlots));
+		updateScroll(scrollAmount); // Refresh scrollbar
 	}
 	
 	@Override
