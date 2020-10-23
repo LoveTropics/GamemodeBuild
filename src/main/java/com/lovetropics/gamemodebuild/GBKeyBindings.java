@@ -17,7 +17,7 @@ import com.lovetropics.gamemodebuild.state.GBClientState;
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
 public class GBKeyBindings {
 	
-	public static final KeyBinding SWITCH_MODE = new KeyBinding("Enable/Disable Survival+ Mode", GLFW.GLFW_KEY_P, "Survival+");
+	public static final KeyBinding SWITCH_MODE = new KeyBinding("Enable/Disable Build Mode", GLFW.GLFW_KEY_B, "Build Mode");
 	
 	@SubscribeEvent
 	public static void onKeyInput(ClientTickEvent event) {
