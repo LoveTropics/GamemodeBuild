@@ -277,8 +277,21 @@ public class BuildContainer extends Container {
 	
 	@Override
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+		if (slotId < 0 || slotId >= HEIGHT * WIDTH) {
+			// This is not an infinite slot, we don't need to do anything special
+			return super.slotClick(slotId, dragType, clickTypeIn, player);
+		}
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
 		ItemStack oldCursor = player.inventory.getItemStack().copy();
+		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && getSlot(slotId).getStack().isItemEqual(oldCursor)) {
+			// Allow pulling single items into an existing stack
+			ItemStack ret = oldCursor.copy();
+			if (ret.getCount() < ret.getMaxStackSize()) {
+				ret.grow(1);
+			}
+			player.inventory.setItemStack(ret);
+			return getSlot(slotId).getStack();
+		}
 		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
 		ItemStack newCursor = player.inventory.getItemStack();
 		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
