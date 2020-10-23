@@ -1,8 +1,12 @@
 package com.lovetropics.gamemodebuild.state;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraftforge.common.util.Constants;
@@ -38,9 +42,13 @@ public final class GBPlayerStore {
 		ListNBT list = new ListNBT();
 		player.inventory.write(list);
 		survivalPlus.put(from, list);
+		List<ItemStack> armor = new ArrayList<>(player.inventory.armorInventory);
 		player.inventory.clear();
 
 		player.inventory.read(survivalPlus.getList(to, Constants.NBT.TAG_COMPOUND));
+		for (int i = 0; i < armor.size(); i++) {
+			player.inventory.armorInventory.set(i, armor.get(i));
+		}
 	}
 
 	public static void switchToSPInventory(PlayerEntity player) {
