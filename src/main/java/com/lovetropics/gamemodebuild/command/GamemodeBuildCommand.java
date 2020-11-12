@@ -1,43 +1,44 @@
 package com.lovetropics.gamemodebuild.command;
 
+import static net.minecraft.command.Commands.argument;
+import static net.minecraft.command.Commands.literal;
+
+import java.util.Collection;
+
+import javax.annotation.Nullable;
+
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument.Result;
 import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import com.lovetropics.gamemodebuild.state.GBServerState;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.command.arguments.GameProfileArgument.IProfileProvider;
+import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.command.arguments.EntitySelector;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.network.PacketDistributor;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static net.minecraft.command.Commands.argument;
-import static net.minecraft.command.Commands.literal;
-
 public final class GamemodeBuildCommand {
 	private static final SimpleCommandExceptionType FILTER_DID_NOT_EXIST = new SimpleCommandExceptionType(new StringTextComponent("That filter did not exist!"));
 	
-	private static RequiredArgumentBuilder<CommandSource, IProfileProvider> getPlayerArg() {
-		return argument("player", GameProfileArgument.gameProfile());
+	private static RequiredArgumentBuilder<CommandSource, EntitySelector> getPlayerArg() {
+		return argument("player", EntityArgument.players());
 	}
 
 	private static RequiredArgumentBuilder<CommandSource, Result> getItemArg() {
@@ -45,56 +46,65 @@ public final class GamemodeBuildCommand {
 	}
 
 	// @formatter:off
-	private static LiteralArgumentBuilder<CommandSource> getEnableLiteral(boolean enable) {
+	private static LiteralArgumentBuilder<CommandSource> enable(boolean enable) {
 		return literal(enable ? "enable" : "disable")
 			.requires(src -> src.hasPermissionLevel(4))
 			.executes(ctx -> enable(ctx, null, enable))
 			.then(
 				getPlayerArg()
-				.executes(ctx -> enable(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), enable))
+				.executes(ctx -> enable(ctx, EntityArgument.getPlayers(ctx, "player"), enable))
 			);
 	}
 
-	private static LiteralArgumentBuilder<CommandSource> getListLiteral(String name) {
-		return literal(name)
-			.requires(src -> src.hasPermissionLevel(4))
-			.then(
-				literal("add")
+	private static RequiredArgumentBuilder<CommandSource, String> nameArg() {
+		return argument("name", StringArgumentType.word())
+				.suggests((ctx, builder) -> ISuggestionProvider.suggest(GBConfigs.SERVER.getLists(), builder));
+	}
+
+	private static ArgumentBuilder<CommandSource, ?> listCommands(boolean whitelist) {
+		return nameArg()
+			.then(literal("add")
 				.then(
 					getItemArg()
-					.executes(getListAddCommand(name))
-				)
-			)
-			.then(
-				literal("remove")
+					.executes(getListAddCommand(whitelist))
+				))
+			.then(literal("remove")
 				.then(
 					getItemArg()
-					.suggests(getSuggestions(name))
-					.executes(getListRemoveCommand(name))
+					.suggests(getSuggestions(whitelist))
+					.executes(getListRemoveCommand(whitelist))
 				)
 			)
 			.then(
 				literal("clear")
-				.executes(getListClearCommand(name))
+				.executes(getListClearCommand(whitelist))
 			);
 	}
 
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(
-			literal("build")
-				.then(getEnableLiteral(true))
-				.then(getEnableLiteral(false))
-				.then(getListLiteral("whitelist"))
-				.then(getListLiteral("blacklist"))
+			literal("build").requires(src -> src.hasPermissionLevel(4))
+				.then(enable(true))
+				.then(enable(false))
+				.then(literal("whitelist")
+						.then(listCommands(true)))
+				.then(literal("blacklist")
+						.then(listCommands(false)))
+				.then(literal("set_list").then(getPlayerArg().then(nameArg()
+						.executes(ctx -> {
+							Collection<ServerPlayerEntity> players = EntityArgument.getPlayers(ctx, "player");
+							players.forEach(player -> GBPlayerStore.setList(player, StringArgumentType.getString(ctx, "name")));
+							return players.size();
+						}))))
 		);
 	}
 	// @formatter:on
 	
-	private static int enable(CommandContext<CommandSource> ctx, @Nullable Collection<GameProfile> profiles, boolean state) {
+	private static int enable(CommandContext<CommandSource> ctx, @Nullable Collection<ServerPlayerEntity> players, boolean state) {
 		CommandSource src = ctx.getSource();
 		MinecraftServer server = src.getServer();
 
-		if (profiles == null) {
+		if (players == null) {
 			if (state == GBServerState.isGloballyEnabled()) {
 				throw new CommandException(new StringTextComponent(GamemodeBuild.NAME + " is already " + (state ? "enabled" : "disabled")));
 			}
@@ -103,11 +113,6 @@ public final class GamemodeBuildCommand {
 			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
 			return Command.SINGLE_SUCCESS;
 		}
-		
-		List<ServerPlayerEntity> players = profiles.stream()
-			   .map(g -> server.getPlayerList().getPlayerByUUID(g.getId()))
-			   .filter(p -> GBPlayerStore.isEnabled(p) != state)
-			   .collect(Collectors.toList());
 
 		players.forEach(p -> GBServerState.setEnabledFor(p, state));
 
@@ -119,45 +124,56 @@ public final class GamemodeBuildCommand {
 		return players.size();
 	}
 
-	private static Command<CommandSource> getListAddCommand(String name) {
+	private static Command<CommandSource> getListAddCommand(boolean whitelist) {
 		return (CommandContext<CommandSource> ctx) -> {
+			String name = StringArgumentType.getString(ctx, "name");
 			ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 			String entry = filter.asString();
 
-			GBConfigs.SERVER.addToList(name, entry, true);
-			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.ADD, name, entry));
-			ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to " + name), false);
+			if (whitelist) {
+				GBConfigs.SERVER.addToWhitelist(name, entry, true);
+			} else {
+				GBConfigs.SERVER.addToBlacklist(name, entry, true);
+			}
+			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.ADD, whitelist, name, entry));
+			ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
 	}
 
-	private static Command<CommandSource> getListRemoveCommand(String name) {
+	private static Command<CommandSource> getListRemoveCommand(boolean whitelist) {
 		return (CommandContext<CommandSource> ctx) -> {
+			String name = StringArgumentType.getString(ctx, "name");
 			ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 			String entry = filter.asString();
 
-			if (!GBConfigs.SERVER.removeFromList(name, entry, true)) throw FILTER_DID_NOT_EXIST.create();
+			boolean found = whitelist ? GBConfigs.SERVER.removeFromWhitelist(name, entry, true) : GBConfigs.SERVER.removeFromBlacklist(name, entry, true);
+			if (!found) throw FILTER_DID_NOT_EXIST.create();
 
-			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.REMOVE, name, entry));
-			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from " + name), false);
+			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.REMOVE, whitelist, name, entry));
+			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
 	}
 
-	private static Command<CommandSource> getListClearCommand(String name) {
+	private static Command<CommandSource> getListClearCommand(boolean whitelist) {
 		return (CommandContext<CommandSource> ctx) -> {
-			int count = GBConfigs.SERVER.clearList(name, true);
+			String name = StringArgumentType.getString(ctx, "name");
+			int count = whitelist ? GBConfigs.SERVER.clearWhitelist(name, true) : GBConfigs.SERVER.clearBlacklist(name, true);
 
-			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.CLEAR, name, null));
-			ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " " + name + " entries"), false);
+			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.CLEAR, whitelist, name, null));
+			ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " " +  (whitelist ? " whitelist" : " blacklist") + " entries from " + name), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
 	}
 
-	private static SuggestionProvider<CommandSource> getSuggestions(String name) {
-		return (ctx, builder) -> ISuggestionProvider.suggest(GBConfigs.SERVER.getListStream(name), builder);
+	private static SuggestionProvider<CommandSource> getSuggestions(boolean whitelist) {
+		return (ctx, builder) -> {
+			String name = StringArgumentType.getString(ctx, "name");
+			return ISuggestionProvider.suggest(whitelist ? GBConfigs.SERVER.getWhitelistStream(name) : GBConfigs.SERVER.getBlacklistStream(name), builder);
+		};
 	}
 }

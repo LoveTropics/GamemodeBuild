@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 public class ListUpdateMessage {
 	final String    name;
+	final boolean   whitelist;
 	final Operation operation;
 	final String    entry;
 
@@ -41,18 +42,20 @@ public class ListUpdateMessage {
 		}
 	}
 
-	public ListUpdateMessage(Operation operation, String name, String entry) {
+	public ListUpdateMessage(Operation operation, boolean whitelist, String name, String entry) {
 		this.operation = operation;
+		this.whitelist = whitelist;
 		this.name = name;
 		this.entry = entry;
 	}
 
 	public ListUpdateMessage(PacketBuffer buf) {
-		this(Operation.deserialize(buf.readByte()), buf.readBoolean() ? buf.readString(64) : null, buf.readBoolean() ? buf.readString(100) : null);
+		this(Operation.deserialize(buf.readByte()), buf.readBoolean(), buf.readBoolean() ? buf.readString(64) : null, buf.readBoolean() ? buf.readString(100) : null);
 	}
 
 	public void serialize(PacketBuffer buf) {
 		buf.writeByte(operation.serialize());
+		buf.writeBoolean(whitelist);
 
 		buf.writeBoolean(name != null);
 		if (name != null) buf.writeString(name, 64);
@@ -65,13 +68,25 @@ public class ListUpdateMessage {
 		ctxSupplier.get().enqueueWork(() -> {
 			switch (message.operation) {
 				case ADD:
-					GBConfigs.SERVER.addToList(message.name, message.entry, false);
+					if (message.whitelist) {
+						GBConfigs.SERVER.addToWhitelist(message.name, message.entry, false);
+					} else {
+						GBConfigs.SERVER.addToBlacklist(message.name, message.entry, false);
+					}
 					break;
 				case REMOVE:
-					GBConfigs.SERVER.removeFromList(message.name, message.entry, false);
+					if (message.whitelist) {
+						GBConfigs.SERVER.removeFromWhitelist(message.name, message.entry, false);
+					} else {
+						GBConfigs.SERVER.removeFromBlacklist(message.name, message.entry, false);
+					}
 					break;
 				case CLEAR:
-					GBConfigs.SERVER.clearList(message.name, false);
+					if (message.whitelist) {
+						GBConfigs.SERVER.clearWhitelist(message.name, false);
+					} else {
+						GBConfigs.SERVER.clearBlacklist(message.name, false);
+					}
 					break;
 			}
 		});

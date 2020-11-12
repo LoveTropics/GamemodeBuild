@@ -2,17 +2,20 @@ package com.lovetropics.gamemodebuild.container;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+
+import javax.annotation.Nullable;
 
 import com.google.common.base.Strings;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
+import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
@@ -21,10 +24,11 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.LanguageMap;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -45,7 +49,7 @@ public class BuildContainer extends Container {
 	
 	@SubscribeEvent
 	public static void onContainerRegistry(RegistryEvent.Register<ContainerType<?>> event) {
-		ContainerType<BuildContainer> type = new ContainerType<>(BuildContainer::new);
+		ContainerType<BuildContainer> type = IForgeContainerType.create(BuildContainer::new);
 		event.getRegistry().register(type.setRegistryName("container"));
 		
 		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.registerFactory(type, BuildScreen::new));
@@ -196,16 +200,22 @@ public class BuildContainer extends Container {
 	public final InfiniteInventory inventory;
 	
 	private int scrollOffset;
-	
-	public BuildContainer(int windowId, PlayerInventory playerInventory) {
-		this(windowId, playerInventory, playerInventory.player);
-	}
-	
+
+	// Server container
 	public BuildContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+		this(windowId, playerInventory, player, GBPlayerStore.getList(player));
+	}
+
+	// Client container
+	public BuildContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
+		this(windowId, playerInventory, playerInventory.player, extraData.readString());
+	}
+
+	public BuildContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player, @Nullable String list) {
 		super(TYPE, windowId);
 		this.player = player;
 		
-		List<ItemStack> buildingStacks = GBConfigs.SERVER.getFilter().getAllStacks();
+		List<ItemStack> buildingStacks = list == null ? Collections.emptyList() : GBConfigs.SERVER.getFilter(list).getAllStacks();
 		this.inventory = new InfiniteInventory(player, buildingStacks);
 		
 		for (int y = 0; y < HEIGHT; y++) {

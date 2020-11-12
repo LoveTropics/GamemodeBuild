@@ -29,7 +29,7 @@ public final class PlayerInventoryHooks {
 		if (event.getGui() instanceof InventoryScreen) {
 			GamemodeBuild.NETWORK.sendToServer(new OpenBuildInventoryMessage());
 			
-			BuildContainer container = new BuildContainer(0, player.inventory);
+			BuildContainer container = new BuildContainer(0, player.inventory, player, null);
 			event.setGui(new BuildScreen(container, player.inventory, BuildContainer.title()));
 		}
 	}
