@@ -16,6 +16,7 @@ public final class GBPlayerStore {
 	private static final String KEY_ENABLED = "enabled";
 	private static final String KEY_PLAYER_INVENTORY = "playerinv";
 	private static final String KEY_SP_INVENTORY = "buildinv";
+	private static final String KEY_LIST = "list";
 
 	public static void setEnabled(PlayerEntity player, boolean enabled) {
 		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
@@ -35,6 +36,16 @@ public final class GBPlayerStore {
 	public static boolean isActive(PlayerEntity player) {
 		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		return survivalPlus.getBoolean(KEY_ACTIVE);
+	}
+
+	public static void setList(PlayerEntity player, String list) {
+		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+		survivalPlus.putString(KEY_LIST, list);
+	}
+
+	public static String getList(PlayerEntity player) {
+		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+		return survivalPlus.contains(KEY_LIST) ? survivalPlus.getString(KEY_LIST) : "default";
 	}
 
 	private static void switchInventories(PlayerEntity player, String from, String to) {
