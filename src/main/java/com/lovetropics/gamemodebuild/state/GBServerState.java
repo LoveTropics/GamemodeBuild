@@ -2,6 +2,7 @@ package com.lovetropics.gamemodebuild.state;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
 
 import net.minecraft.entity.player.PlayerEntity;
@@ -59,7 +60,7 @@ public final class GBServerState {
 	
 	private static void notifyPlayerActivity(ServerPlayerEntity player) {
 		SetActiveMessage message = new SetActiveMessage(isActiveFor(player));
-		GamemodeBuild.NETWORK.send(PacketDistributor.PLAYER.with(() -> player), message);
+		GBNetwork.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
 	}
 	
 	@SubscribeEvent

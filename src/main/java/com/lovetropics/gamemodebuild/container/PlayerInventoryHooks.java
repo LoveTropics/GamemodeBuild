@@ -1,6 +1,7 @@
 package com.lovetropics.gamemodebuild.container;
 
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
 import com.lovetropics.gamemodebuild.state.GBClientState;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
@@ -27,7 +28,7 @@ public final class PlayerInventoryHooks {
 		}
 		
 		if (event.getGui() instanceof InventoryScreen) {
-			GamemodeBuild.NETWORK.sendToServer(new OpenBuildInventoryMessage());
+			GBNetwork.CHANNEL.sendToServer(new OpenBuildInventoryMessage());
 			
 			BuildContainer container = new BuildContainer(0, player.inventory, player, null);
 			event.setGui(new BuildScreen(container, player.inventory, BuildContainer.title()));

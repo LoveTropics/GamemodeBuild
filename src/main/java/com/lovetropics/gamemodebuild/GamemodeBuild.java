@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
+import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
@@ -39,12 +40,6 @@ public class GamemodeBuild {
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	public static final SimpleChannel NETWORK = NetworkRegistry.ChannelBuilder.named(new ResourceLocation(MODID, "net"))
-			.networkProtocolVersion(GamemodeBuild::getCompatVersion)
-			.clientAcceptedVersions(GamemodeBuild::isCompatibleVersion)
-			.serverAcceptedVersions(GamemodeBuild::isCompatibleVersion)
-			.simpleChannel();
-	
 	public GamemodeBuild() {
     	// Compatible with all versions that match the semver (excluding the qualifier e.g. "-beta+42")
     	ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(GamemodeBuild::getCompatVersion, (s, v) -> GamemodeBuild.isCompatibleVersion(s)));
@@ -72,31 +67,7 @@ public class GamemodeBuild {
     }
 
 	private void setup(final FMLCommonSetupEvent event) {
-		NETWORK.messageBuilder(OpenBuildInventoryMessage.class, 0, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(OpenBuildInventoryMessage::serialize).decoder(OpenBuildInventoryMessage::deserialize)
-				.consumer(OpenBuildInventoryMessage::handle)
-				.add();
-		
-		NETWORK.messageBuilder(SetActiveMessage.class, 1)
-				.encoder(SetActiveMessage::serialize).decoder(SetActiveMessage::deserialize)
-				.consumer(SetActiveMessage::handle)
-				.add();
-		
-		NETWORK.messageBuilder(SetScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(SetScrollMessage::serialize).decoder(SetScrollMessage::deserialize)
-				.consumer(SetScrollMessage::handle)
-				.add();
-		
-		NETWORK.messageBuilder(ListUpdateMessage.class, 3, NetworkDirection.PLAY_TO_CLIENT)
-				.encoder(ListUpdateMessage::serialize).decoder(ListUpdateMessage::new)
-				.consumer(ListUpdateMessage::handle)
-				.add();
-		
-		NETWORK.messageBuilder(UpdateFilterMessage.class, 4, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(UpdateFilterMessage::serialize).decoder(UpdateFilterMessage::new)
-				.consumer(UpdateFilterMessage::handle)
-				.add();
-		
+		GBNetwork.register();
 		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
 	}
 	

@@ -1,5 +1,11 @@
 package com.lovetropics.gamemodebuild;
 
+import org.lwjgl.glfw.GLFW;
+
+import com.lovetropics.gamemodebuild.message.GBNetwork;
+import com.lovetropics.gamemodebuild.message.SetActiveMessage;
+import com.lovetropics.gamemodebuild.state.GBClientState;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.settings.KeyBinding;
@@ -9,10 +15,6 @@ import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import org.lwjgl.glfw.GLFW;
-
-import com.lovetropics.gamemodebuild.message.SetActiveMessage;
-import com.lovetropics.gamemodebuild.state.GBClientState;
 
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
 public class GBKeyBindings {
@@ -26,7 +28,7 @@ public class GBKeyBindings {
 			if (player != null) {
 				// don't set local state: await confirmation from the server
 				boolean active = !GBClientState.isActive();
-				GamemodeBuild.NETWORK.sendToServer(new SetActiveMessage(active));
+				GBNetwork.CHANNEL.sendToServer(new SetActiveMessage(active));
 			}
 		}
 	}
