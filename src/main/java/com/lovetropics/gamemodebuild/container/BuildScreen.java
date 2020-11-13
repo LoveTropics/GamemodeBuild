@@ -3,9 +3,8 @@ package com.lovetropics.gamemodebuild.container;
 import java.util.BitSet;
 import java.util.Objects;
 
-import org.lwjgl.glfw.GLFW;
-
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -54,7 +53,7 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	
 	private void updateSearch() {
 		BitSet filteredSlots = this.container.applyFilter(this.searchField.getText());
-		GamemodeBuild.NETWORK.sendToServer(new UpdateFilterMessage(filteredSlots));
+		GBNetwork.CHANNEL.sendToServer(new UpdateFilterMessage(filteredSlots));
 		updateScroll(scrollAmount); // Refresh scrollbar
 	}
 	

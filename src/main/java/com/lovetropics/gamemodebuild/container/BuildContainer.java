@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Strings;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 
@@ -237,7 +238,7 @@ public class BuildContainer extends Container {
 			this.scrollOffset = scrollOffset;
 			
 			if (player.world.isRemote) {
-				GamemodeBuild.NETWORK.sendToServer(new SetScrollMessage(scrollOffset));
+				GBNetwork.CHANNEL.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
 			for (Slot slot : this.inventorySlots) {

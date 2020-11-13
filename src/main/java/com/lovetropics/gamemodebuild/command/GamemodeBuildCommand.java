@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument.Result;
+import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import com.lovetropics.gamemodebuild.state.GBServerState;
@@ -135,7 +136,7 @@ public final class GamemodeBuildCommand {
 			} else {
 				GBConfigs.SERVER.addToBlacklist(name, entry, true);
 			}
-			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.ADD, whitelist, name, entry));
+			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.ADD, whitelist, name, entry));
 			ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
@@ -151,7 +152,7 @@ public final class GamemodeBuildCommand {
 			boolean found = whitelist ? GBConfigs.SERVER.removeFromWhitelist(name, entry, true) : GBConfigs.SERVER.removeFromBlacklist(name, entry, true);
 			if (!found) throw FILTER_DID_NOT_EXIST.create();
 
-			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.REMOVE, whitelist, name, entry));
+			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.REMOVE, whitelist, name, entry));
 			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
@@ -163,7 +164,7 @@ public final class GamemodeBuildCommand {
 			String name = StringArgumentType.getString(ctx, "name");
 			int count = whitelist ? GBConfigs.SERVER.clearWhitelist(name, true) : GBConfigs.SERVER.clearBlacklist(name, true);
 
-			GamemodeBuild.NETWORK.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.CLEAR, whitelist, name, null));
+			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.CLEAR, whitelist, name, null));
 			ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " " +  (whitelist ? " whitelist" : " blacklist") + " entries from " + name), false);
 
 			return Command.SINGLE_SUCCESS;
