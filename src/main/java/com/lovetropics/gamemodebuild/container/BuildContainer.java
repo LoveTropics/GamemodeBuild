@@ -1,20 +1,11 @@
 package com.lovetropics.gamemodebuild.container;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-
-import javax.annotation.Nullable;
-
 import com.google.common.base.Strings;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -36,6 +27,13 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.registries.ObjectHolder;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD)
 public class BuildContainer extends Container {
@@ -88,7 +86,7 @@ public class BuildContainer extends Container {
 		
 		@Override
 		public ItemStack getStackInSlot(int index) {
-			if (index < this.items.size()) {
+			if (index >= 0 && index < this.items.size()) {
 				ItemStack stack = this.items.get(index).copy();
 				if (takeStacks) {
 					stack.setCount(stack.getMaxStackSize());
@@ -144,7 +142,7 @@ public class BuildContainer extends Container {
 			if (!Strings.isNullOrEmpty(filter)) {
 				for (int i = 0; i < this.masterItems.size(); i++) {
 					ItemStack stack = this.masterItems.get(i);
-					if (stack.isEmpty() || !stack.getDisplayName().getUnformattedComponentText().toLowerCase(locale).contains(filter)) {
+					if (stack.isEmpty() || !stack.getDisplayName().getString().toLowerCase(locale).contains(filter)) {
 						filteredSlots.set(i);
 					}
 				}
@@ -173,7 +171,7 @@ public class BuildContainer extends Container {
 		}
 		
 		public void setScrollOffset(int offset) {
-			this.idxOffset = offset * WIDTH;
+			this.idxOffset = Math.max(offset, 0) * WIDTH;
 		}
 		
 		@Override
