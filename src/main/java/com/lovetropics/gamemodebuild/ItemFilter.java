@@ -1,25 +1,23 @@
 package com.lovetropics.gamemodebuild;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.Validate;
-
 import com.google.common.base.Predicates;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.Tag;
 import net.minecraft.util.LazyValue;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.commons.lang3.Validate;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ItemFilter {
 	
@@ -40,7 +38,7 @@ public class ItemFilter {
 	
 	private static class LazyTagFilter implements Predicate<Item> {
 		
-		private final LazyValue<Tag<Item>> tag;
+		private final LazyValue<ITag<Item>> tag;
 		
 		LazyTagFilter(String tagName) {
 			this.tag = new LazyValue<>(() -> ItemTags.getCollection().get(new ResourceLocation(tagName)));
@@ -48,7 +46,7 @@ public class ItemFilter {
 		
 		@Override
 		public boolean test(Item item) {
-			Tag<Item> t = tag.getValue();
+			ITag<Item> t = tag.getValue();
 			return t != null && t.contains(item);
 		}
 	}

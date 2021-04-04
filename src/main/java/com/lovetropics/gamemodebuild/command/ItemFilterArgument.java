@@ -1,9 +1,5 @@
 package com.lovetropics.gamemodebuild.command;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -11,12 +7,16 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.arguments.ItemParser;
 import net.minecraft.item.Item;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Result> {
 	private static final Collection<String> EXAMPLES = Arrays.asList("stick", "minecraft:stick", "#stick");
@@ -58,7 +58,7 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 		} catch (CommandSyntaxException var6) {
 		}
 		
-		return parser.fillSuggestions(builder);
+		return parser.fillSuggestions(builder, ItemTags.getCollection());
 	}
 	
 	@Override
