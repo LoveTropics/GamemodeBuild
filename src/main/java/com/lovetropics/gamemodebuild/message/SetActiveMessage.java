@@ -1,20 +1,18 @@
 package com.lovetropics.gamemodebuild.message;
 
-import java.util.function.Supplier;
-
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.state.GBClientState;
 import com.lovetropics.gamemodebuild.state.GBServerState;
-
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public final class SetActiveMessage {
 	private final boolean enabled;
@@ -38,12 +36,12 @@ public final class SetActiveMessage {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player != null) {
 					if (!GBServerState.isEnabledFor(player)) {
-						player.sendMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), ChatType.GAME_INFO);
+						player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), true);
 					} else {
 						GBServerState.setActiveFor(player, message.enabled);
 						GBServerState.switchInventories(player, message.enabled);
 						if (message.enabled) {
-							player.sendMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), ChatType.GAME_INFO);
+							player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), true);
 						} else {
 //							// Clear marked stacks from inventory
 //							for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
@@ -51,7 +49,7 @@ public final class SetActiveMessage {
 //									player.inventory.removeStackFromSlot(i);
 //								}
 //							}
-							player.sendMessage(new StringTextComponent(GamemodeBuild.NAME + " deactivated"), ChatType.GAME_INFO);
+							player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " deactivated"), true);
 						}
 					}
 				}

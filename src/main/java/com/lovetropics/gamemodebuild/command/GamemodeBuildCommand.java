@@ -1,12 +1,5 @@
 package com.lovetropics.gamemodebuild.command;
 
-import static net.minecraft.command.Commands.argument;
-import static net.minecraft.command.Commands.literal;
-
-import java.util.Collection;
-
-import javax.annotation.Nullable;
-
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument.Result;
@@ -23,7 +16,6 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ISuggestionProvider;
@@ -34,6 +26,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.network.PacketDistributor;
+
+import javax.annotation.Nullable;
+import java.util.Collection;
+
+import static net.minecraft.command.Commands.argument;
+import static net.minecraft.command.Commands.literal;
 
 public final class GamemodeBuildCommand {
 	private static final SimpleCommandExceptionType FILTER_DID_NOT_EXIST = new SimpleCommandExceptionType(new StringTextComponent("That filter did not exist!"));
@@ -119,7 +117,7 @@ public final class GamemodeBuildCommand {
 
 		src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
 		if (state && !GBServerState.isGloballyEnabled()) {
-			src.sendFeedback(new StringTextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").applyTextStyle(TextFormatting.YELLOW), false);
+			src.sendFeedback(new StringTextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").mergeStyle(TextFormatting.YELLOW), false);
 		}
 
 		return players.size();

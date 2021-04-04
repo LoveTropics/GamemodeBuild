@@ -1,24 +1,12 @@
 package com.lovetropics.gamemodebuild;
 
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
-import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
-import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
-import com.lovetropics.gamemodebuild.message.SetActiveMessage;
-import com.lovetropics.gamemodebuild.message.SetScrollMessage;
-import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
-
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModList;
@@ -27,11 +15,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.regex.Pattern;
 
 @Mod(GamemodeBuild.MODID)
 public class GamemodeBuild {
@@ -76,7 +65,7 @@ public class GamemodeBuild {
 	}
 	
 	@SubscribeEvent
-	public void serverStarting(FMLServerStartingEvent event) {
-		GamemodeBuildCommand.register(event.getCommandDispatcher());
+	public void registerCommands(RegisterCommandsEvent event) {
+		GamemodeBuildCommand.register(event.getDispatcher());
 	}
 }
