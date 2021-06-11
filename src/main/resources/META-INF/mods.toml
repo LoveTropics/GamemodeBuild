@@ -1,6 +1,8 @@
 modLoader="javafml"
 loaderVersion="[36,)"
 issueTrackerURL="https://github.com/LoveTropics/GamemodeBuild"
+license="ARR"
+
 [[mods]]
 modId="gamemodebuild"
 version="${file.jarVersion}"
