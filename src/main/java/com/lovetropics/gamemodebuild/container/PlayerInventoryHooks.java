@@ -37,7 +37,7 @@ public final class PlayerInventoryHooks {
 	
 	@SubscribeEvent
 	public static void onToss(ItemTossEvent event) {
-		if (GBPlayerStore.isActive(event.getPlayer()) || GBStackMarker.isMarked(event.getEntityItem().getItem())) {
+		if (GBStackMarker.isMarked(event.getEntityItem().getItem())) {
 			event.setCanceled(true);
 		}
 	}

@@ -1,11 +1,11 @@
 package com.lovetropics.gamemodebuild.message;
 
-import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.state.GBClientState;
 import com.lovetropics.gamemodebuild.state.GBServerState;
+import com.lovetropics.gamemodebuild.state.GBServerState.NotificationType;
+
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
@@ -35,26 +35,14 @@ public final class SetActiveMessage {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player != null) {
-					if (!GBServerState.isEnabledFor(player)) {
-						player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), true);
-					} else {
+					if (GBServerState.isEnabledFor(player)) {
 						GBServerState.setActiveFor(player, message.enabled);
-						GBServerState.switchInventories(player, message.enabled);
-						if (message.enabled) {
-							player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), true);
-						} else {
-//							// Clear marked stacks from inventory
-//							for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-//								if (SPStackMarker.isMarked(player.inventory.getStackInSlot(i))) {
-//									player.inventory.removeStackFromSlot(i);
-//								}
-//							}
-							player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " deactivated"), true);
-						}
+					} else {
+						GBServerState.notifyPlayerActivity(player, NotificationType.ACTIVE);
 					}
 				}
 			} else if (ctx.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-				DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> setClientState(message.enabled));
+				DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> setClientState(message.enabled));
 			}
 		});
 		
