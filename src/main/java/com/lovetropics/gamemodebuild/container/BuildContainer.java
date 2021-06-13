@@ -55,7 +55,7 @@ public class BuildContainer extends Container {
 	}
 	
 	public static StringTextComponent title() {
-		return new StringTextComponent("SurvivalPlus");
+		return new StringTextComponent("Build Mode");
 	}
 	
 	public class InfiniteInventory implements IInventory {
