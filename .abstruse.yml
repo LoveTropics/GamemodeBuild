@@ -1,8 +1,16 @@
 image: openjdk:8-jdk
 
 install:
+  - apt update && apt install -y git curl
+  - curl -o notify.sh https://cocytus.services/ci/github-notif.sh && chmod +x notify.sh
   - chmod +x gradlew
 
 script:
   - ./gradlew clean
   - ./gradlew build
+
+after_successful:
+  - ./notify.sh PASS
+
+after_failure:
+  - ./notify.sh FAIL
