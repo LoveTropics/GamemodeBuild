@@ -8,9 +8,3 @@ install:
 script:
   - ./gradlew clean
   - ./gradlew build
-
-after_successful:
-  - ./notify.sh PASS
-
-after_failure:
-  - ./notify.sh FAIL
