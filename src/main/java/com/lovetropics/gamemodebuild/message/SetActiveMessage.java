@@ -38,7 +38,7 @@ public final class SetActiveMessage {
 					if (GBServerState.isEnabledFor(player)) {
 						GBServerState.setActiveFor(player, message.enabled);
 					} else {
-						GBServerState.notifyPlayerActivity(player, NotificationType.ACTIVE);
+						GBServerState.notifyPlayerActivity(false, player, NotificationType.ACTIVE);
 					}
 				}
 			} else if (ctx.getDirection() == NetworkDirection.PLAY_TO_CLIENT) {

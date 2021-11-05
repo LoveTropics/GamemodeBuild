@@ -29,13 +29,14 @@ public final class GBServerState {
 		GBConfigs.SERVER.enable(enabled);
 		
 		for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
-			notifyPlayerActivity(player, NotificationType.ENABLED);
+			notifyPlayerActivity(false, player, NotificationType.ENABLED);
 		}
 	}
 	
 	public static void setEnabledFor(ServerPlayerEntity player, boolean enabled) {
+		boolean wasActive = GBPlayerStore.isActive(player);
 		GBPlayerStore.setEnabled(player, enabled);
-		notifyPlayerActivity(player, NotificationType.ENABLED);
+		notifyPlayerActivity(wasActive, player, NotificationType.ENABLED);
 	}
 	
 	public static boolean isGloballyEnabled() {
@@ -51,8 +52,9 @@ public final class GBServerState {
 	
 	public static void setActiveFor(ServerPlayerEntity player, boolean active) {
 		if (isEnabledFor(player) || !active) {
+			boolean wasActive = GBPlayerStore.isActive(player);
 			GBPlayerStore.setActive(player, active);
-			notifyPlayerActivity(player, NotificationType.ACTIVE);
+			notifyPlayerActivity(wasActive, player, NotificationType.ACTIVE);
 		}
 	}
 	
@@ -68,12 +70,12 @@ public final class GBServerState {
 		}
 	}
 	
-	public static void notifyPlayerActivity(ServerPlayerEntity player, NotificationType type) {
+	public static void notifyPlayerActivity(boolean prevState, ServerPlayerEntity player, NotificationType type) {
 		boolean state = isActiveFor(player);
 		if (type != NotificationType.INITIAL) {
 			if (!GBServerState.isEnabledFor(player) && type == NotificationType.ACTIVE) {
 				player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), true);
-			} else {
+			} else if (prevState != state) {
 				GBServerState.switchInventories(player, state);
 				if (state) {
 					player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), true);
@@ -96,7 +98,8 @@ public final class GBServerState {
 	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
 		PlayerEntity player = event.getPlayer();
 		if (!player.world.isRemote && player instanceof ServerPlayerEntity) {
-			notifyPlayerActivity((ServerPlayerEntity) player, NotificationType.INITIAL);
+			// Previous state doesn't matter here
+			notifyPlayerActivity(false, (ServerPlayerEntity) player, NotificationType.INITIAL);
 		}
 	}
 }
