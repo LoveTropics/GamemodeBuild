@@ -51,7 +51,7 @@ public class BuildContainer extends Container {
 		ContainerType<BuildContainer> type = IForgeContainerType.create(BuildContainer::new);
 		event.getRegistry().register(type.setRegistryName("container"));
 		
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.registerFactory(type, BuildScreen::new));
+		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.register(type, BuildScreen::new));
 	}
 	
 	public static StringTextComponent title() {
@@ -71,11 +71,11 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public void clear() {
+		public void clearContent() {
 		}
 		
 		@Override
-		public int getSizeInventory() {
+		public int getContainerSize() {
 			return this.items.size();
 		}
 		
@@ -85,7 +85,7 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public ItemStack getStackInSlot(int index) {
+		public ItemStack getItem(int index) {
 			if (index >= 0 && index < this.items.size()) {
 				ItemStack stack = this.items.get(index).copy();
 				if (takeStacks) {
@@ -98,8 +98,8 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public ItemStack decrStackSize(int index, int count) {
-			ItemStack stack = this.getStackInSlot(index);
+		public ItemStack removeItem(int index, int count) {
+			ItemStack stack = this.getItem(index);
 			if (!stack.isEmpty()) {
 				stack.setCount(count);
 				return stack;
@@ -108,20 +108,20 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public ItemStack removeStackFromSlot(int index) {
-			return this.getStackInSlot(index);
+		public ItemStack removeItemNoUpdate(int index) {
+			return this.getItem(index);
 		}
 		
 		@Override
-		public void setInventorySlotContents(int index, ItemStack stack) {
+		public void setItem(int index, ItemStack stack) {
 		}
 		
 		@Override
-		public void markDirty() {
+		public void setChanged() {
 		}
 		
 		@Override
-		public boolean isUsableByPlayer(PlayerEntity player) {
+		public boolean stillValid(PlayerEntity player) {
 			return true;
 		}
 		
@@ -137,12 +137,12 @@ public class BuildContainer extends Container {
 		@OnlyIn(Dist.CLIENT)
 		public BitSet applyFilter(String filter) {
 			BitSet filteredSlots = new BitSet();
-			Locale locale = Minecraft.getInstance().getLanguageManager().getCurrentLanguage().getJavaLocale();
+			Locale locale = Minecraft.getInstance().getLanguageManager().getSelected().getJavaLocale();
 			filter = filter.toLowerCase(locale);
 			if (!Strings.isNullOrEmpty(filter)) {
 				for (int i = 0; i < this.masterItems.size(); i++) {
 					ItemStack stack = this.masterItems.get(i);
-					if (stack.isEmpty() || !stack.getDisplayName().getString().toLowerCase(locale).contains(filter)) {
+					if (stack.isEmpty() || !stack.getHoverName().getString().toLowerCase(locale).contains(filter)) {
 						filteredSlots.set(i);
 					}
 				}
@@ -160,12 +160,12 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public boolean canTakeStack(PlayerEntity player) {
+		public boolean mayPickup(PlayerEntity player) {
 			return true;
 		}
 		
 		@Override
-		public boolean isItemValid(ItemStack stack) {
+		public boolean mayPlace(ItemStack stack) {
 			// only allow items to be deleted if they are from the gui
 			return GBStackMarker.isMarked(stack);
 		}
@@ -175,23 +175,23 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public void putStack(ItemStack stack) {
+		public void set(ItemStack stack) {
 		}
 		
 		@Override
-		public ItemStack decrStackSize(int amount) {
-			return this.inventory.decrStackSize(this.getSlotIndex() + this.idxOffset, amount);
+		public ItemStack remove(int amount) {
+			return this.container.removeItem(this.getSlotIndex() + this.idxOffset, amount);
 		}
 		
 		@Override
-		public ItemStack getStack() {
+		public ItemStack getItem() {
 			// we don't want to synchronize anything when running detectAndSendChanges, so hide our real state
 			Boolean suppressSendChanges = SUPPRESS_SEND_CHANGES.get();
 			if (suppressSendChanges != null && suppressSendChanges) {
 				return ItemStack.EMPTY;
 			}
 			
-			return this.inventory.getStackInSlot(this.getSlotIndex() + this.idxOffset);
+			return this.container.getItem(this.getSlotIndex() + this.idxOffset);
 		}
 	}
 	
@@ -207,7 +207,7 @@ public class BuildContainer extends Container {
 
 	// Client container
 	public BuildContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
-		this(windowId, playerInventory, playerInventory.player, extraData.readString());
+		this(windowId, playerInventory, playerInventory.player, extraData.readUtf());
 	}
 
 	public BuildContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player, @Nullable String list) {
@@ -235,11 +235,11 @@ public class BuildContainer extends Container {
 		if (this.scrollOffset != scrollOffset) {
 			this.scrollOffset = scrollOffset;
 			
-			if (player.world.isRemote) {
+			if (player.level.isClientSide) {
 				GBNetwork.CHANNEL.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
-			for (Slot slot : this.inventorySlots) {
+			for (Slot slot : this.slots) {
 				if (slot instanceof InfiniteSlot) {
 					((InfiniteSlot) slot).setScrollOffset(scrollOffset);
 				}
@@ -270,45 +270,45 @@ public class BuildContainer extends Container {
 	}
 	
 	@Override
-	public void detectAndSendChanges() {
+	public void broadcastChanges() {
 		SUPPRESS_SEND_CHANGES.set(true);
 		try {
-			super.detectAndSendChanges();
+			super.broadcastChanges();
 		} finally {
 			SUPPRESS_SEND_CHANGES.set(false);
 		}
 	}
 	
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn) {
+	public boolean stillValid(PlayerEntity playerIn) {
 		return true;
 	}
 	
 	@Override
-	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+	public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
 		if (slotId < 0 || slotId >= HEIGHT * WIDTH) {
 			// This is not an infinite slot, we don't need to do anything special
-			return super.slotClick(slotId, dragType, clickTypeIn, player);
+			return super.clicked(slotId, dragType, clickTypeIn, player);
 		}
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
-		ItemStack oldCursor = player.inventory.getItemStack().copy();
-		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && getSlot(slotId).getStack().isItemEqual(oldCursor)) {
+		ItemStack oldCursor = player.inventory.getCarried().copy();
+		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && getSlot(slotId).getItem().sameItem(oldCursor)) {
 			// Allow pulling single items into an existing stack
 			ItemStack ret = oldCursor.copy();
 			if (ret.getCount() < ret.getMaxStackSize()) {
 				ret.grow(1);
 			}
-			player.inventory.setItemStack(ret);
-			return getSlot(slotId).getStack();
+			player.inventory.setCarried(ret);
+			return getSlot(slotId).getItem();
 		}
-		ItemStack ret = super.slotClick(slotId, dragType, clickTypeIn, player);
-		ItemStack newCursor = player.inventory.getItemStack();
+		ItemStack ret = super.clicked(slotId, dragType, clickTypeIn, player);
+		ItemStack newCursor = player.inventory.getCarried();
 		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
-			if (!oldCursor.isItemEqual(newCursor)) {
-				player.inventory.setItemStack(ItemStack.EMPTY);
+			if (!oldCursor.sameItem(newCursor)) {
+				player.inventory.setCarried(ItemStack.EMPTY);
 			} else {
 				newCursor.setCount(Math.max(oldCursor.getCount(), newCursor.getCount()));
-				player.inventory.setItemStack(newCursor);
+				player.inventory.setCarried(newCursor);
 			}
 		}
 		this.takeStacks = false;
@@ -316,27 +316,27 @@ public class BuildContainer extends Container {
 	}
 	
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity player, int index) {
-		Slot slot = this.inventorySlots.get(index);
+	public ItemStack quickMoveStack(PlayerEntity player, int index) {
+		Slot slot = this.slots.get(index);
 		
 		// recreate shift-click to pick up max stack behaviour
 		if (slot instanceof InfiniteSlot) {
-			ItemStack stack = slot.getStack().copy();
+			ItemStack stack = slot.getItem().copy();
 			stack.setCount(stack.getMaxStackSize());
-			player.inventory.setItemStack(stack);
+			player.inventory.setCarried(stack);
 			
 			return ItemStack.EMPTY;
 		}
 		
-		if (slot != null && slot.getHasStack()) {
-			ItemStack stack = slot.getStack();
+		if (slot != null && slot.hasItem()) {
+			ItemStack stack = slot.getItem();
 			if (index < 5 * 9) {
 				stack.setCount(64);
-				this.mergeItemStack(stack, 5 * 9, this.inventorySlots.size(), false);
+				this.moveItemStackTo(stack, 5 * 9, this.slots.size(), false);
 				return ItemStack.EMPTY;
 			} else {
 				if (GBStackMarker.isMarked(stack)) {
-					slot.putStack(ItemStack.EMPTY);
+					slot.set(ItemStack.EMPTY);
 				}
 				return ItemStack.EMPTY;
 			}

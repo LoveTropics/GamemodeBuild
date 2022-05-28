@@ -31,7 +31,7 @@ public class ItemFilter {
 		
 		@Override
 		public boolean test(Item t) {
-			Item i = item.getValue();
+			Item i = item.get();
 			return i != null && i == t;
 		}
 	}
@@ -41,12 +41,12 @@ public class ItemFilter {
 		private final LazyValue<ITag<Item>> tag;
 		
 		LazyTagFilter(String tagName) {
-			this.tag = new LazyValue<>(() -> ItemTags.getCollection().get(new ResourceLocation(tagName)));
+			this.tag = new LazyValue<>(() -> ItemTags.getAllTags().getTag(new ResourceLocation(tagName)));
 		}
 		
 		@Override
 		public boolean test(Item item) {
-			ITag<Item> t = tag.getValue();
+			ITag<Item> t = tag.get();
 			return t != null && t.contains(item);
 		}
 	}
@@ -83,7 +83,7 @@ public class ItemFilter {
 	}
 	
 	public List<ItemStack> getAllStacks() {
-		return getStacks(ItemGroup.SEARCH);
+		return getStacks(ItemGroup.TAB_SEARCH);
 	}
 	
 	public List<ItemStack> getStacks(ItemGroup group) {
@@ -93,7 +93,7 @@ public class ItemFilter {
 
 		NonNullList<ItemStack> ret = NonNullList.create();
 		for (Item item : Registry.ITEM) {
-			item.fillItemGroup(group, ret);
+			item.fillItemCategory(group, ret);
 		}
 		ret.removeIf(s -> whitelistPredicates.stream().noneMatch(p -> p.test(s.getItem())));
 		ret.removeIf(s -> blacklistPredicates.stream().anyMatch(p -> p.test(s.getItem())));

@@ -25,7 +25,7 @@ public final class OpenBuildInventoryMessage {
 		ctx.enqueueWork(() -> {
 			ServerPlayerEntity player = ctx.getSender();
 			if (player != null && GBServerState.isActiveFor(player)) {
-				NetworkHooks.openGui(player, new SimpleNamedContainerProvider(BuildContainer::new, BuildContainer.title()), buf -> buf.writeString(GBPlayerStore.getList(player)));
+				NetworkHooks.openGui(player, new SimpleNamedContainerProvider(BuildContainer::new, BuildContainer.title()), buf -> buf.writeUtf(GBPlayerStore.getList(player)));
 			}
 		});
 		

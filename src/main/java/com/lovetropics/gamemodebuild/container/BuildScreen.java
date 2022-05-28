@@ -29,17 +29,17 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	
 	public BuildScreen(BuildContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
 		super(screenContainer, inv, titleIn);
-		this.xSize = 195;
-		this.ySize = 136;// + 28;
+		this.imageWidth = 195;
+		this.imageHeight = 136;// + 28;
 	}
 	
 	@Override
 	protected void init() {
 		super.init();
 		
-        this.searchField = new TextFieldWidget(this.font, this.guiLeft + 82, this.guiTop + 6, 80, 9, new TranslationTextComponent("itemGroup.search"));
-        this.searchField.setMaxStringLength(50);
-        this.searchField.setEnableBackgroundDrawing(false);
+        this.searchField = new TextFieldWidget(this.font, this.leftPos + 82, this.topPos + 6, 80, 9, new TranslationTextComponent("itemGroup.search"));
+        this.searchField.setMaxLength(50);
+        this.searchField.setBordered(false);
         this.searchField.setVisible(true);
         this.searchField.setTextColor(16777215);
         this.children.add(this.searchField);
@@ -52,16 +52,16 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	}
 	
 	private void updateSearch() {
-		BitSet filteredSlots = this.container.applyFilter(this.searchField.getText());
+		BitSet filteredSlots = this.menu.applyFilter(this.searchField.getValue());
 		GBNetwork.CHANNEL.sendToServer(new UpdateFilterMessage(filteredSlots));
 		updateScroll(scrollAmount); // Refresh scrollbar
 	}
 	
 	@Override
 	public boolean charTyped(char p_charTyped_1_, int p_charTyped_2_) {
-		String s = this.searchField.getText();
+		String s = this.searchField.getValue();
 		boolean ret = super.charTyped(p_charTyped_1_, p_charTyped_2_);
-		if (!Objects.equals(s, this.searchField.getText())) {
+		if (!Objects.equals(s, this.searchField.getValue())) {
 			updateSearch();
 		}
 		return ret;
@@ -70,14 +70,14 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	// Logic from CreativeScreen
 	@Override
 	public boolean keyPressed(int p_keyPressed_1_, int p_keyPressed_2_, int p_keyPressed_3_) {
-		String s = this.searchField.getText();
+		String s = this.searchField.getValue();
 		if (this.searchField.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_)) {
-			if (!Objects.equals(s, this.searchField.getText())) {
+			if (!Objects.equals(s, this.searchField.getValue())) {
 				this.updateSearch();
 			}
 			return true;
 		} else {
-			return this.searchField.isFocused() && this.searchField.getVisible() && p_keyPressed_1_ != 256 || super.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
+			return this.searchField.isFocused() && this.searchField.isVisible() && p_keyPressed_1_ != 256 || super.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
 		}
 	}
 
@@ -86,29 +86,29 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 		this.renderBackground(transform);
 		super.render(transform, mouseX, mouseY, partialTicks);
 		RenderSystem.disableBlend();
-		this.renderHoveredTooltip(transform, mouseX, mouseY);
+		this.renderTooltip(transform, mouseX, mouseY);
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(MatrixStack transform, int mouseX, int mouseY) {
-		this.font.drawString(transform, this.title.getString(), 8.0F, 6.0F/* + 28*/, 0x404040);
+	protected void renderLabels(MatrixStack transform, int mouseX, int mouseY) {
+		this.font.draw(transform, this.title.getString(), 8.0F, 6.0F/* + 28*/, 0x404040);
 	}
 	
 	@Override
-	protected void drawGuiContainerBackgroundLayer(MatrixStack transform, float partialTicks, int mouseX, int mouseY) {
+	protected void renderBg(MatrixStack transform, float partialTicks, int mouseX, int mouseY) {
 //		this.getMinecraft().getTextureManager().bindTexture(TABS);
 //		for (int i = 1; i < 5; i++) {
 //			this.blit(this.guiLeft + (i * 29), this.guiTop, i * 28, 0, 28, 32);
 //		}
 //		this.blit(this.guiLeft + this.xSize - 28, this.guiTop, 5 * 28, 0, 28, 32);
 		
-		this.getMinecraft().getTextureManager().bindTexture(TEXTURE);
-		this.blit(transform, this.guiLeft, this.guiTop/* + 28*/, 0, 0, this.xSize, this.ySize);
+		this.getMinecraft().getTextureManager().bind(TEXTURE);
+		this.blit(transform, this.leftPos, this.topPos/* + 28*/, 0, 0, this.imageWidth, this.imageHeight);
 		
-		this.getMinecraft().getTextureManager().bindTexture(TABS);
+		this.getMinecraft().getTextureManager().bind(TABS);
 //		this.blit(this.guiLeft, this.guiTop, 0, 32, 28, 32);
 		
-		if (this.container.canScroll()) {
+		if (this.menu.canScroll()) {
 			Rect2i rect = this.scrollRect();
 			this.blit(transform, rect.left, rect.top, 232, 0, rect.width, rect.height);
 		}
@@ -118,8 +118,8 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	
 	@Override
 	public boolean mouseScrolled(double x, double y, double amount) {
-		if (this.container.canScroll()) {
-			int scrollHeight = this.container.scrollHeight();
+		if (this.menu.canScroll()) {
+			int scrollHeight = this.menu.scrollHeight();
 			this.updateScroll((float) (this.scrollAmount - amount / scrollHeight));
 			return true;
 		}
@@ -163,8 +163,8 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	private void updateScroll(float amount) {
 		this.scrollAmount = MathHelper.clamp(amount, 0.0F, 1.0F);
 		
-		int scrollOffset = Math.round(this.scrollAmount * this.container.scrollHeight());
-		this.container.setScrollOffset(scrollOffset);
+		int scrollOffset = Math.round(this.scrollAmount * this.menu.scrollHeight());
+		this.menu.setScrollOffset(scrollOffset);
 	}
 	
 	private Rect2i scrollRect() {
@@ -175,8 +175,8 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	}
 	
 	private Rect2i scrollArea() {
-		int scrollLeft = this.guiLeft + 175;
-		int scrollTop = this.guiTop + 18/* + 28*/;
+		int scrollLeft = this.leftPos + 175;
+		int scrollTop = this.topPos + 18/* + 28*/;
 		return new Rect2i(scrollLeft, scrollTop, 12, 112);
 	}
 	

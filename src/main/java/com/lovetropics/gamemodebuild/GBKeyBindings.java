@@ -24,7 +24,7 @@ public class GBKeyBindings {
 	
 	@SubscribeEvent
 	public static void onKeyInput(ClientTickEvent event) {
-		if (event.phase == Phase.END && SWITCH_MODE.isPressed()) {
+		if (event.phase == Phase.END && SWITCH_MODE.consumeClick()) {
 			ClientPlayerEntity player = Minecraft.getInstance().player;
 			if (player != null) {
 				// don't set local state: await confirmation from the server

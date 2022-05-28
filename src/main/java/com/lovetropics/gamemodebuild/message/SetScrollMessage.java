@@ -31,8 +31,8 @@ public final class SetScrollMessage {
 				ServerPlayerEntity player = ctx.getSender();
 				if (player == null) return;
 				
-				if (player.openContainer instanceof BuildContainer) {
-					((BuildContainer) player.openContainer).setScrollOffset(message.scrollOffset);
+				if (player.containerMenu instanceof BuildContainer) {
+					((BuildContainer) player.containerMenu).setScrollOffset(message.scrollOffset);
 				}
 			}
 		});

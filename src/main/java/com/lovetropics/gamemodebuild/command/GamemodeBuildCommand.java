@@ -47,7 +47,7 @@ public final class GamemodeBuildCommand {
 	// @formatter:off
 	private static LiteralArgumentBuilder<CommandSource> enable(boolean enable) {
 		return literal(enable ? "enable" : "disable")
-			.requires(src -> src.hasPermissionLevel(4))
+			.requires(src -> src.hasPermission(4))
 			.executes(ctx -> enable(ctx, null, enable))
 			.then(
 				getPlayerArg()
@@ -82,7 +82,7 @@ public final class GamemodeBuildCommand {
 
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(
-			literal("build").requires(src -> src.hasPermissionLevel(4))
+			literal("build").requires(src -> src.hasPermission(4))
 				.then(enable(true))
 				.then(enable(false))
 				.then(literal("whitelist")
@@ -109,15 +109,15 @@ public final class GamemodeBuildCommand {
 			}
 
 			GBServerState.setGloballyEnabled(server, state);
-			src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
+			src.sendSuccess(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
 			return Command.SINGLE_SUCCESS;
 		}
 
 		players.forEach(p -> GBServerState.setEnabledFor(p, state));
 
-		src.sendFeedback(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
+		src.sendSuccess(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
 		if (state && !GBServerState.isGloballyEnabled()) {
-			src.sendFeedback(new StringTextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").mergeStyle(TextFormatting.YELLOW), false);
+			src.sendSuccess(new StringTextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").withStyle(TextFormatting.YELLOW), false);
 		}
 
 		return players.size();
@@ -135,7 +135,7 @@ public final class GamemodeBuildCommand {
 				GBConfigs.SERVER.addToBlacklist(name, entry, true);
 			}
 			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.ADD, whitelist, name, entry));
-			ctx.getSource().sendFeedback(new StringTextComponent("Added '" + entry + "' to " + name + (whitelist ? " whitelist" : " blacklist")), false);
+			ctx.getSource().sendSuccess(new StringTextComponent("Added '" + entry + "' to " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
@@ -151,7 +151,7 @@ public final class GamemodeBuildCommand {
 			if (!found) throw FILTER_DID_NOT_EXIST.create();
 
 			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.REMOVE, whitelist, name, entry));
-			ctx.getSource().sendFeedback(new StringTextComponent("Removed '" + entry + "' from " + name + (whitelist ? " whitelist" : " blacklist")), false);
+			ctx.getSource().sendSuccess(new StringTextComponent("Removed '" + entry + "' from " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
@@ -163,7 +163,7 @@ public final class GamemodeBuildCommand {
 			int count = whitelist ? GBConfigs.SERVER.clearWhitelist(name, true) : GBConfigs.SERVER.clearBlacklist(name, true);
 
 			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.CLEAR, whitelist, name, null));
-			ctx.getSource().sendFeedback(new StringTextComponent("Removed " + count + " " +  (whitelist ? " whitelist" : " blacklist") + " entries from " + name), false);
+			ctx.getSource().sendSuccess(new StringTextComponent("Removed " + count + " " +  (whitelist ? " whitelist" : " blacklist") + " entries from " + name), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
