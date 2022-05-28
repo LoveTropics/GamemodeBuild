@@ -288,6 +288,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		if (slotId < 0 || slotId >= HEIGHT * WIDTH) {
 			// This is not an infinite slot, we don't need to do anything special
 			super.clicked(slotId, dragType, clickTypeIn, player);
+			return;
 		}
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
 		ItemStack oldCursor = getCarried().copy();
