@@ -74,11 +74,11 @@ public final class GBServerState {
 		boolean state = isActiveFor(player);
 		if (type != NotificationType.INITIAL) {
 			if (!GBServerState.isEnabledFor(player) && type == NotificationType.ACTIVE) {
-				player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), true);
+				player.displayClientMessage(new StringTextComponent(GamemodeBuild.NAME + " is disabled!"), true);
 			} else if (prevState != state) {
 				GBServerState.switchInventories(player, state);
 				if (state) {
-					player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), true);
+					player.displayClientMessage(new StringTextComponent(GamemodeBuild.NAME + " activated"), true);
 				} else {
 	//				// Clear marked stacks from inventory
 	//				for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
@@ -86,7 +86,7 @@ public final class GBServerState {
 	//						player.inventory.removeStackFromSlot(i);
 	//					}
 	//				}
-					player.sendStatusMessage(new StringTextComponent(GamemodeBuild.NAME + " deactivated"), true);
+					player.displayClientMessage(new StringTextComponent(GamemodeBuild.NAME + " deactivated"), true);
 				}
 			}
 		}
@@ -97,7 +97,7 @@ public final class GBServerState {
 	@SubscribeEvent
 	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
 		PlayerEntity player = event.getPlayer();
-		if (!player.world.isRemote && player instanceof ServerPlayerEntity) {
+		if (!player.level.isClientSide && player instanceof ServerPlayerEntity) {
 			// Previous state doesn't matter here
 			notifyPlayerActivity(false, (ServerPlayerEntity) player, NotificationType.INITIAL);
 		}

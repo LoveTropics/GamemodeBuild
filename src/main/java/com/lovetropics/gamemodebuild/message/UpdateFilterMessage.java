@@ -27,7 +27,7 @@ public class UpdateFilterMessage {
 	
 	public static boolean handle(UpdateFilterMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
 		ctxSupplier.get().enqueueWork(() -> {
-			Container c = ctxSupplier.get().getSender().openContainer;
+			Container c = ctxSupplier.get().getSender().containerMenu;
 			if (c instanceof BuildContainer) {
 				((BuildContainer) c).setFilter(message.filter);
 			}

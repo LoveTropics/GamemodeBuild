@@ -50,7 +50,7 @@ public class ListUpdateMessage {
 	}
 
 	public ListUpdateMessage(PacketBuffer buf) {
-		this(Operation.deserialize(buf.readByte()), buf.readBoolean(), buf.readBoolean() ? buf.readString(64) : null, buf.readBoolean() ? buf.readString(100) : null);
+		this(Operation.deserialize(buf.readByte()), buf.readBoolean(), buf.readBoolean() ? buf.readUtf(64) : null, buf.readBoolean() ? buf.readUtf(100) : null);
 	}
 
 	public void serialize(PacketBuffer buf) {
@@ -58,10 +58,10 @@ public class ListUpdateMessage {
 		buf.writeBoolean(whitelist);
 
 		buf.writeBoolean(name != null);
-		if (name != null) buf.writeString(name, 64);
+		if (name != null) buf.writeUtf(name, 64);
 
 		buf.writeBoolean(entry != null);
-		if (entry != null) buf.writeString(entry, 100);
+		if (entry != null) buf.writeUtf(entry, 100);
 	}
 
 	public static boolean handle(ListUpdateMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {

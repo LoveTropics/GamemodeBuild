@@ -51,14 +51,14 @@ public final class GBPlayerStore {
 	private static void switchInventories(PlayerEntity player, String from, String to) {
 		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		ListNBT list = new ListNBT();
-		player.inventory.write(list);
+		player.inventory.save(list);
 		survivalPlus.put(from, list);
-		List<ItemStack> armor = new ArrayList<>(player.inventory.armorInventory);
-		player.inventory.clear();
+		List<ItemStack> armor = new ArrayList<>(player.inventory.armor);
+		player.inventory.clearContent();
 
-		player.inventory.read(survivalPlus.getList(to, Constants.NBT.TAG_COMPOUND));
+		player.inventory.load(survivalPlus.getList(to, Constants.NBT.TAG_COMPOUND));
 		for (int i = 0; i < armor.size(); i++) {
-			player.inventory.armorInventory.set(i, armor.get(i));
+			player.inventory.armor.set(i, armor.get(i));
 		}
 	}
 

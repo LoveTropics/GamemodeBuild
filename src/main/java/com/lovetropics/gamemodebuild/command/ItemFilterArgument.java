@@ -58,7 +58,7 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 		} catch (CommandSyntaxException var6) {
 		}
 		
-		return parser.fillSuggestions(builder, ItemTags.getCollection());
+		return parser.fillSuggestions(builder, ItemTags.getAllTags());
 	}
 	
 	@Override

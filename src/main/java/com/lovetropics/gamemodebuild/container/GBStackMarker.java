@@ -6,10 +6,10 @@ import net.minecraft.item.ItemStack;
 
 public final class GBStackMarker {
 	public static void mark(ItemStack stack) {
-		stack.getOrCreateChildTag(GamemodeBuild.MODID);
+		stack.getOrCreateTagElement(GamemodeBuild.MODID);
 	}
 	
 	public static boolean isMarked(ItemStack stack) {
-		return stack.getChildTag(GamemodeBuild.MODID) != null;
+		return stack.getTagElement(GamemodeBuild.MODID) != null;
 	}
 }
