@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.gson.Gson;
@@ -192,13 +193,13 @@ public class GBConfigs {
 	}
 
 	@SubscribeEvent
-	public static void onLoad(final ModConfig.Loading configEvent) {
+	public static void onLoad(final ModConfigEvent.Loading configEvent) {
 		SERVER.loadLists();
 		SERVER.resetFilter();
 	}
 
 	@SubscribeEvent
-	public static void onReload(final ModConfig.Reloading configEvent) {
+	public static void onReload(final ModConfigEvent.Reloading configEvent) {
 		SERVER.loadLists();
 		SERVER.resetFilter();
 	}

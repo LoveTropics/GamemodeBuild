@@ -42,15 +42,15 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
         this.searchField.setBordered(false);
         this.searchField.setVisible(true);
         this.searchField.setTextColor(16777215);
-        this.children.add(this.searchField);
+        addWidget(searchField);
 	}
-	
+
 	@Override
-	public void tick() {
-		super.tick();
+	protected void containerTick() {
+		super.containerTick();
 		this.searchField.tick();
 	}
-	
+
 	private void updateSearch() {
 		BitSet filteredSlots = this.menu.applyFilter(this.searchField.getValue());
 		GBNetwork.CHANNEL.sendToServer(new UpdateFilterMessage(filteredSlots));
@@ -101,11 +101,11 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 //			this.blit(this.guiLeft + (i * 29), this.guiTop, i * 28, 0, 28, 32);
 //		}
 //		this.blit(this.guiLeft + this.xSize - 28, this.guiTop, 5 * 28, 0, 28, 32);
-		
-		this.getMinecraft().getTextureManager().bind(TEXTURE);
+
+		RenderSystem.setShaderTexture(0, TEXTURE);
 		this.blit(transform, this.leftPos, this.topPos/* + 28*/, 0, 0, this.imageWidth, this.imageHeight);
-		
-		this.getMinecraft().getTextureManager().bind(TABS);
+
+		RenderSystem.setShaderTexture(0, TABS);
 //		this.blit(this.guiLeft, this.guiTop, 0, 32, 28, 32);
 		
 		if (this.menu.canScroll()) {

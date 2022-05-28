@@ -1,16 +1,15 @@
 package com.lovetropics.gamemodebuild.message;
 
-import java.util.function.Supplier;
-
 import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import com.lovetropics.gamemodebuild.state.GBServerState;
-
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkHooks;
+
+import java.util.function.Supplier;
 
 public final class OpenBuildInventoryMessage {
 	public void serialize(FriendlyByteBuf buffer) {

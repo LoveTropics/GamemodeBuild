@@ -9,10 +9,10 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.item.ItemParser;
-import net.minecraft.world.item.Item;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,8 +57,8 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 			parser.parse();
 		} catch (CommandSyntaxException var6) {
 		}
-		
-		return parser.fillSuggestions(builder, ItemTags.getAllTags());
+
+		return parser.fillSuggestions(builder, Registry.ITEM);
 	}
 	
 	@Override
@@ -69,30 +69,18 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 	public interface Result {
 		String asString();
 	}
-	
-	public static class ItemResult implements Result {
-		private final Item item;
-		
-		ItemResult(Item item) {
-			this.item = item;
-		}
-		
+
+	public record ItemResult(Item item) implements Result {
 		@Override
 		public String asString() {
 			return this.item.getRegistryName().toString();
 		}
 	}
-	
-	public static class TagResult implements Result {
-		private final ResourceLocation tagId;
-		
-		TagResult(ResourceLocation tagId) {
-			this.tagId = tagId;
-		}
-		
+
+	public record TagResult(TagKey<?> tag) implements Result {
 		@Override
 		public String asString() {
-			return "#" + this.tagId;
+			return "#" + this.tag.location();
 		}
 	}
 	

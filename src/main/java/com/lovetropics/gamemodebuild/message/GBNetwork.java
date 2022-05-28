@@ -1,11 +1,10 @@
 package com.lovetropics.gamemodebuild.message;
 
 import com.lovetropics.gamemodebuild.GamemodeBuild;
-
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 public class GBNetwork {
 

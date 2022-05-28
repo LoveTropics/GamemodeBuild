@@ -1,13 +1,12 @@
 package com.lovetropics.gamemodebuild.message;
 
+import com.lovetropics.gamemodebuild.container.BuildContainer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraftforge.network.NetworkEvent;
+
 import java.util.BitSet;
 import java.util.function.Supplier;
-
-import com.lovetropics.gamemodebuild.container.BuildContainer;
-
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fml.network.NetworkEvent;
 
 public class UpdateFilterMessage {
 	

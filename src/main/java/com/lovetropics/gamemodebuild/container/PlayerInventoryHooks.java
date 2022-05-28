@@ -4,13 +4,12 @@ import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.OpenBuildInventoryMessage;
 import com.lovetropics.gamemodebuild.state.GBClientState;
-import com.lovetropics.gamemodebuild.state.GBPlayerStore;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.ScreenOpenEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -19,7 +18,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
 public final class PlayerInventoryHooks {
 	@SubscribeEvent
-	public static void onOpenScreen(GuiOpenEvent event) {
+	public static void onOpenScreen(ScreenOpenEvent event) {
 		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
@@ -27,11 +26,12 @@ public final class PlayerInventoryHooks {
 			return;
 		}
 		
-		if (event.getGui() instanceof InventoryScreen) {
+		if (event.getScreen() instanceof InventoryScreen) {
 			GBNetwork.CHANNEL.sendToServer(new OpenBuildInventoryMessage());
-			
-			BuildContainer container = new BuildContainer(0, player.inventory, player, null);
-			event.setGui(new BuildScreen(container, player.inventory, BuildContainer.title()));
+
+			final Inventory inventory = player.getInventory();
+			BuildContainer container = new BuildContainer(0, inventory, player, null);
+			event.setScreen(new BuildScreen(container, inventory, BuildContainer.title()));
 		}
 	}
 	
