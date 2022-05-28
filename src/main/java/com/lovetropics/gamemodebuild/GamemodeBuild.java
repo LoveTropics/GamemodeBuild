@@ -3,8 +3,8 @@ package com.lovetropics.gamemodebuild;
 import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
-import net.minecraft.command.arguments.ArgumentSerializer;
-import net.minecraft.command.arguments.ArgumentTypes;
+import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -57,7 +57,7 @@ public class GamemodeBuild {
 
 	private void setup(final FMLCommonSetupEvent event) {
 		GBNetwork.register();
-		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new ArgumentSerializer<>(ItemFilterArgument::itemFilter));
+		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new EmptyArgumentSerializer<>(ItemFilterArgument::itemFilter));
 	}
 	
 	private void doClientStuff(final FMLClientSetupEvent event) {

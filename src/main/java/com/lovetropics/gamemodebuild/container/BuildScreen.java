@@ -3,31 +3,31 @@ package com.lovetropics.gamemodebuild.container;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.BitSet;
 import java.util.Objects;
 
-public class BuildScreen extends ContainerScreen<BuildContainer> {
+public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	
 	private static final ResourceLocation TEXTURE = new ResourceLocation(GamemodeBuild.MODID, "textures/gui/menu.png");
 	
 	private static final ResourceLocation TABS = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");
 	
-	private TextFieldWidget searchField;
+	private EditBox searchField;
 	
 	private float scrollAmount;
 	private boolean draggingScroll;
 	
-	public BuildScreen(BuildContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+	public BuildScreen(BuildContainer screenContainer, Inventory inv, Component titleIn) {
 		super(screenContainer, inv, titleIn);
 		this.imageWidth = 195;
 		this.imageHeight = 136;// + 28;
@@ -37,7 +37,7 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	protected void init() {
 		super.init();
 		
-        this.searchField = new TextFieldWidget(this.font, this.leftPos + 82, this.topPos + 6, 80, 9, new TranslationTextComponent("itemGroup.search"));
+        this.searchField = new EditBox(this.font, this.leftPos + 82, this.topPos + 6, 80, 9, new TranslatableComponent("itemGroup.search"));
         this.searchField.setMaxLength(50);
         this.searchField.setBordered(false);
         this.searchField.setVisible(true);
@@ -82,7 +82,7 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	}
 
 	@Override
-	public void render(MatrixStack transform, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack transform, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(transform);
 		super.render(transform, mouseX, mouseY, partialTicks);
 		RenderSystem.disableBlend();
@@ -90,12 +90,12 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	}
 
 	@Override
-	protected void renderLabels(MatrixStack transform, int mouseX, int mouseY) {
+	protected void renderLabels(PoseStack transform, int mouseX, int mouseY) {
 		this.font.draw(transform, this.title.getString(), 8.0F, 6.0F/* + 28*/, 0x404040);
 	}
 	
 	@Override
-	protected void renderBg(MatrixStack transform, float partialTicks, int mouseX, int mouseY) {
+	protected void renderBg(PoseStack transform, float partialTicks, int mouseX, int mouseY) {
 //		this.getMinecraft().getTextureManager().bindTexture(TABS);
 //		for (int i = 1; i < 5; i++) {
 //			this.blit(this.guiLeft + (i * 29), this.guiTop, i * 28, 0, 28, 32);
@@ -161,7 +161,7 @@ public class BuildScreen extends ContainerScreen<BuildContainer> {
 	}
 	
 	private void updateScroll(float amount) {
-		this.scrollAmount = MathHelper.clamp(amount, 0.0F, 1.0F);
+		this.scrollAmount = Mth.clamp(amount, 0.0F, 1.0F);
 		
 		int scrollOffset = Math.round(this.scrollAmount * this.menu.scrollHeight());
 		this.menu.setScrollOffset(scrollOffset);

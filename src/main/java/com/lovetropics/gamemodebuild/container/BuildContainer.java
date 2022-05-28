@@ -7,17 +7,17 @@ import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.extensions.IForgeContainerType;
@@ -36,34 +36,34 @@ import java.util.List;
 import java.util.Locale;
 
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD)
-public class BuildContainer extends Container {
+public class BuildContainer extends AbstractContainerMenu {
 	public static final int WIDTH = 9;
 	public static final int HEIGHT = 5;
 	
 	@ObjectHolder(GamemodeBuild.MODID + ":container")
-	public static final ContainerType<BuildContainer> TYPE = null;
+	public static final MenuType<BuildContainer> TYPE = null;
 	
 	private static final ThreadLocal<Boolean> SUPPRESS_SEND_CHANGES = new ThreadLocal<>();
 	private boolean takeStacks = false;
 	
 	@SubscribeEvent
-	public static void onContainerRegistry(RegistryEvent.Register<ContainerType<?>> event) {
-		ContainerType<BuildContainer> type = IForgeContainerType.create(BuildContainer::new);
+	public static void onContainerRegistry(RegistryEvent.Register<MenuType<?>> event) {
+		MenuType<BuildContainer> type = IForgeContainerType.create(BuildContainer::new);
 		event.getRegistry().register(type.setRegistryName("container"));
 		
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ScreenManager.register(type, BuildScreen::new));
+		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> MenuScreens.register(type, BuildScreen::new));
 	}
 	
-	public static StringTextComponent title() {
-		return new StringTextComponent("Build Mode");
+	public static TextComponent title() {
+		return new TextComponent("Build Mode");
 	}
 	
-	public class InfiniteInventory implements IInventory {
-		private final PlayerEntity player;
+	public class InfiniteInventory implements Container {
+		private final Player player;
 		private final List<ItemStack> masterItems;
 		private final List<ItemStack> items;
 		
-		private InfiniteInventory(PlayerEntity player, List<ItemStack> items) {
+		private InfiniteInventory(Player player, List<ItemStack> items) {
 			this.player = player;
 			this.masterItems = items;
 			this.items = new ArrayList<>();
@@ -121,7 +121,7 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public boolean stillValid(PlayerEntity player) {
+		public boolean stillValid(Player player) {
 			return true;
 		}
 		
@@ -160,7 +160,7 @@ public class BuildContainer extends Container {
 		}
 		
 		@Override
-		public boolean mayPickup(PlayerEntity player) {
+		public boolean mayPickup(Player player) {
 			return true;
 		}
 		
@@ -195,22 +195,22 @@ public class BuildContainer extends Container {
 		}
 	}
 	
-	private final PlayerEntity player;
+	private final Player player;
 	public final InfiniteInventory inventory;
 	
 	private int scrollOffset;
 
 	// Server container
-	public BuildContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+	public BuildContainer(int windowId, Inventory playerInventory, Player player) {
 		this(windowId, playerInventory, player, GBPlayerStore.getList(player));
 	}
 
 	// Client container
-	public BuildContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
+	public BuildContainer(int windowId, Inventory playerInventory, FriendlyByteBuf extraData) {
 		this(windowId, playerInventory, playerInventory.player, extraData.readUtf());
 	}
 
-	public BuildContainer(int windowId, PlayerInventory playerInventory, PlayerEntity player, @Nullable String list) {
+	public BuildContainer(int windowId, Inventory playerInventory, Player player, @Nullable String list) {
 		super(TYPE, windowId);
 		this.player = player;
 		
@@ -280,12 +280,12 @@ public class BuildContainer extends Container {
 	}
 	
 	@Override
-	public boolean stillValid(PlayerEntity playerIn) {
+	public boolean stillValid(Player playerIn) {
 		return true;
 	}
 	
 	@Override
-	public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+	public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
 		if (slotId < 0 || slotId >= HEIGHT * WIDTH) {
 			// This is not an infinite slot, we don't need to do anything special
 			return super.clicked(slotId, dragType, clickTypeIn, player);
@@ -316,7 +316,7 @@ public class BuildContainer extends Container {
 	}
 	
 	@Override
-	public ItemStack quickMoveStack(PlayerEntity player, int index) {
+	public ItemStack quickMoveStack(Player player, int index) {
 		Slot slot = this.slots.get(index);
 		
 		// recreate shift-click to pick up max stack behaviour
