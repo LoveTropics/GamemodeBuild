@@ -2,7 +2,7 @@ package com.lovetropics.gamemodebuild.message;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -16,29 +16,20 @@ public class ListUpdateMessage {
 		ADD, REMOVE, CLEAR;
 
 		public byte serialize() {
-			switch (this) {
-				case ADD:
-					return 1;
-				case REMOVE:
-					return 2;
-				case CLEAR:
-					return 3;
-				default:
-					throw new IllegalStateException("HOW???");
-			}
+			return (byte) switch (this) {
+				case ADD -> 1;
+				case REMOVE -> 2;
+				case CLEAR -> 3;
+			};
 		}
 
 		public static Operation deserialize(byte data) {
-			switch (data) {
-				case 1:
-					return ADD;
-				case 2:
-					return REMOVE;
-				case 3:
-					return CLEAR;
-				default:
-					throw new IllegalArgumentException("Operation can only be a value from 1 to 3");
-			}
+			return switch (data) {
+				case 1 -> ADD;
+				case 2 -> REMOVE;
+				case 3 -> CLEAR;
+				default -> throw new IllegalArgumentException("Operation can only be a value from 1 to 3");
+			};
 		}
 	}
 

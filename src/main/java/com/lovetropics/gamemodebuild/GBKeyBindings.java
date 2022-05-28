@@ -1,21 +1,19 @@
 package com.lovetropics.gamemodebuild;
 
-import org.lwjgl.glfw.GLFW;
-
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
 import com.lovetropics.gamemodebuild.state.GBClientState;
-
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.KeyMapping;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
 public class GBKeyBindings {

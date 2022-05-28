@@ -1,15 +1,15 @@
 package com.lovetropics.gamemodebuild.state;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.lovetropics.gamemodebuild.GamemodeBuild;
-
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class GBPlayerStore {
 	private static final String KEY_ACTIVE = "active";
@@ -49,16 +49,17 @@ public final class GBPlayerStore {
 	}
 
 	private static void switchInventories(Player player, String from, String to) {
+		final Inventory inventory = player.getInventory();
 		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		ListTag list = new ListTag();
-		player.inventory.save(list);
+		inventory.save(list);
 		survivalPlus.put(from, list);
-		List<ItemStack> armor = new ArrayList<>(player.inventory.armor);
-		player.inventory.clearContent();
+		List<ItemStack> armor = new ArrayList<>(inventory.armor);
+		inventory.clearContent();
 
-		player.inventory.load(survivalPlus.getList(to, Constants.NBT.TAG_COMPOUND));
+		inventory.load(survivalPlus.getList(to, Tag.TAG_COMPOUND));
 		for (int i = 0; i < armor.size(); i++) {
-			player.inventory.armor.set(i, armor.get(i));
+			inventory.armor.set(i, armor.get(i));
 		}
 	}
 
@@ -77,7 +78,7 @@ public final class GBPlayerStore {
 	}
 
 	private static CompoundTag getOrCreateCompound(CompoundTag root, String key) {
-		if (root.contains(key, Constants.NBT.TAG_COMPOUND)) {
+		if (root.contains(key, Tag.TAG_COMPOUND)) {
 			return root.getCompound(key);
 		}
 

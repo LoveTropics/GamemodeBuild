@@ -1,13 +1,12 @@
 package com.lovetropics.gamemodebuild.message;
 
-import java.util.function.Supplier;
-
 import com.lovetropics.gamemodebuild.container.BuildContainer;
-
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public final class SetScrollMessage {
 	private final int scrollOffset;

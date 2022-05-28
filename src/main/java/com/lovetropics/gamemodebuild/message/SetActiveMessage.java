@@ -3,14 +3,13 @@ package com.lovetropics.gamemodebuild.message;
 import com.lovetropics.gamemodebuild.state.GBClientState;
 import com.lovetropics.gamemodebuild.state.GBServerState;
 import com.lovetropics.gamemodebuild.state.GBServerState.NotificationType;
-
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 

@@ -20,7 +20,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.extensions.IForgeContainerType;
+import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -48,7 +48,7 @@ public class BuildContainer extends AbstractContainerMenu {
 	
 	@SubscribeEvent
 	public static void onContainerRegistry(RegistryEvent.Register<MenuType<?>> event) {
-		MenuType<BuildContainer> type = IForgeContainerType.create(BuildContainer::new);
+		MenuType<BuildContainer> type = IForgeMenuType.create(BuildContainer::new);
 		event.getRegistry().register(type.setRegistryName("container"));
 		
 		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> MenuScreens.register(type, BuildScreen::new));
@@ -88,7 +88,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		public ItemStack getItem(int index) {
 			if (index >= 0 && index < this.items.size()) {
 				ItemStack stack = this.items.get(index).copy();
-				if (takeStacks) {
+				if (BuildContainer.this.takeStacks) {
 					stack.setCount(stack.getMaxStackSize());
 				}
 				GBStackMarker.mark(stack);
@@ -129,7 +129,7 @@ public class BuildContainer extends AbstractContainerMenu {
 			this.items.clear();
 			for (int i = 0; i < this.masterItems.size(); i++) {
 				if (!filteredSlots.get(i)) {
-					items.add(this.masterItems.get(i));
+					this.items.add(this.masterItems.get(i));
 				}
 			}
 		}
@@ -147,7 +147,7 @@ public class BuildContainer extends AbstractContainerMenu {
 					}
 				}
 			}
-			setFilter(filteredSlots);
+			this.setFilter(filteredSlots);
 			return filteredSlots;
 		}
 	}
@@ -220,7 +220,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x < WIDTH; x++) {
 				int i = x + y * WIDTH;
-				addSlot(new InfiniteSlot(inventory, i, 9 + x * 18, /*28 + */18 + y * 18));
+				this.addSlot(new InfiniteSlot(this.inventory, i, 9 + x * 18, /*28 + */18 + y * 18));
 			}
 		}
 		
@@ -235,7 +235,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		if (this.scrollOffset != scrollOffset) {
 			this.scrollOffset = scrollOffset;
 			
-			if (player.level.isClientSide) {
+			if (this.player.level.isClientSide) {
 				GBNetwork.CHANNEL.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
@@ -257,18 +257,17 @@ public class BuildContainer extends AbstractContainerMenu {
 	
 	@OnlyIn(Dist.CLIENT)
 	public BitSet applyFilter(String filter) {
-		return ((InfiniteInventory)this.inventory).applyFilter(filter);
+		return this.inventory.applyFilter(filter);
 	}
 	
 	public void setFilter(BitSet filteredSlots) {
-		((InfiniteInventory)this.inventory).setFilter(filteredSlots);
+		this.inventory.setFilter(filteredSlots);
 	}
-	
-	@OnlyIn(Dist.CLIENT)
+
 	@Override
-	public void setAll(List<ItemStack> stacks) {
+	public void initializeContents(final int id, final List<ItemStack> stacks, final ItemStack carried) {
 	}
-	
+
 	@Override
 	public void broadcastChanges() {
 		SUPPRESS_SEND_CHANGES.set(true);
@@ -285,34 +284,33 @@ public class BuildContainer extends AbstractContainerMenu {
 	}
 	
 	@Override
-	public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
+	public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
 		if (slotId < 0 || slotId >= HEIGHT * WIDTH) {
 			// This is not an infinite slot, we don't need to do anything special
-			return super.clicked(slotId, dragType, clickTypeIn, player);
+			super.clicked(slotId, dragType, clickTypeIn, player);
 		}
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
-		ItemStack oldCursor = player.inventory.getCarried().copy();
+		ItemStack oldCursor = getCarried().copy();
 		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && getSlot(slotId).getItem().sameItem(oldCursor)) {
 			// Allow pulling single items into an existing stack
 			ItemStack ret = oldCursor.copy();
 			if (ret.getCount() < ret.getMaxStackSize()) {
 				ret.grow(1);
 			}
-			player.inventory.setCarried(ret);
-			return getSlot(slotId).getItem();
+			setCarried(ret);
+			return;
 		}
-		ItemStack ret = super.clicked(slotId, dragType, clickTypeIn, player);
-		ItemStack newCursor = player.inventory.getCarried();
+		super.clicked(slotId, dragType, clickTypeIn, player);
+		ItemStack newCursor = getCarried();
 		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
 			if (!oldCursor.sameItem(newCursor)) {
-				player.inventory.setCarried(ItemStack.EMPTY);
+				setCarried(ItemStack.EMPTY);
 			} else {
 				newCursor.setCount(Math.max(oldCursor.getCount(), newCursor.getCount()));
-				player.inventory.setCarried(newCursor);
+				setCarried(newCursor);
 			}
 		}
 		this.takeStacks = false;
-		return ret;
 	}
 	
 	@Override
@@ -323,7 +321,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		if (slot instanceof InfiniteSlot) {
 			ItemStack stack = slot.getItem().copy();
 			stack.setCount(stack.getMaxStackSize());
-			player.inventory.setCarried(stack);
+			setCarried(stack);
 			
 			return ItemStack.EMPTY;
 		}
