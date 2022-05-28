@@ -4,8 +4,8 @@ import com.lovetropics.gamemodebuild.state.GBClientState;
 import com.lovetropics.gamemodebuild.state.GBServerState;
 import com.lovetropics.gamemodebuild.state.GBServerState.NotificationType;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
@@ -21,11 +21,11 @@ public final class SetActiveMessage {
 		this.enabled = enabled;
 	}
 	
-	public void serialize(PacketBuffer buffer) {
+	public void serialize(FriendlyByteBuf buffer) {
 		buffer.writeBoolean(this.enabled);
 	}
 	
-	public static SetActiveMessage deserialize(PacketBuffer buffer) {
+	public static SetActiveMessage deserialize(FriendlyByteBuf buffer) {
 		return new SetActiveMessage(buffer.readBoolean());
 	}
 	
@@ -33,7 +33,7 @@ public final class SetActiveMessage {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
-				ServerPlayerEntity player = ctx.getSender();
+				ServerPlayer player = ctx.getSender();
 				if (player != null) {
 					if (GBServerState.isEnabledFor(player)) {
 						GBServerState.setActiveFor(player, message.enabled);

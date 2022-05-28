@@ -1,7 +1,7 @@
 package com.lovetropics.gamemodebuild.message;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -49,11 +49,11 @@ public class ListUpdateMessage {
 		this.entry = entry;
 	}
 
-	public ListUpdateMessage(PacketBuffer buf) {
+	public ListUpdateMessage(FriendlyByteBuf buf) {
 		this(Operation.deserialize(buf.readByte()), buf.readBoolean(), buf.readBoolean() ? buf.readUtf(64) : null, buf.readBoolean() ? buf.readUtf(100) : null);
 	}
 
-	public void serialize(PacketBuffer buf) {
+	public void serialize(FriendlyByteBuf buf) {
 		buf.writeByte(operation.serialize());
 		buf.writeBoolean(whitelist);
 

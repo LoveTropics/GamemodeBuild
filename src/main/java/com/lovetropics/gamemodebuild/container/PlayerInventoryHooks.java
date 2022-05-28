@@ -7,8 +7,8 @@ import com.lovetropics.gamemodebuild.state.GBClientState;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
@@ -20,7 +20,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 public final class PlayerInventoryHooks {
 	@SubscribeEvent
 	public static void onOpenScreen(GuiOpenEvent event) {
-		ClientPlayerEntity player = Minecraft.getInstance().player;
+		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
 		if (!GBClientState.isActive()) {

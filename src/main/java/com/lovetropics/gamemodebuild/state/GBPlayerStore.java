@@ -5,10 +5,10 @@ import java.util.List;
 
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraftforge.common.util.Constants;
 
 public final class GBPlayerStore {
@@ -18,39 +18,39 @@ public final class GBPlayerStore {
 	private static final String KEY_SP_INVENTORY = "buildinv";
 	private static final String KEY_LIST = "list";
 
-	public static void setEnabled(PlayerEntity player, boolean enabled) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+	public static void setEnabled(Player player, boolean enabled) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		survivalPlus.putBoolean(KEY_ENABLED, enabled);
 	}
 
-	public static boolean isEnabled(PlayerEntity player) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+	public static boolean isEnabled(Player player) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		return !survivalPlus.contains(KEY_ENABLED) || survivalPlus.getBoolean(KEY_ENABLED);
 	}
 
-	public static void setActive(PlayerEntity player, boolean active) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+	public static void setActive(Player player, boolean active) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		survivalPlus.putBoolean(KEY_ACTIVE, active);
 	}
 
-	public static boolean isActive(PlayerEntity player) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+	public static boolean isActive(Player player) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		return survivalPlus.getBoolean(KEY_ACTIVE);
 	}
 
-	public static void setList(PlayerEntity player, String list) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+	public static void setList(Player player, String list) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		survivalPlus.putString(KEY_LIST, list);
 	}
 
-	public static String getList(PlayerEntity player) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+	public static String getList(Player player) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
 		return survivalPlus.contains(KEY_LIST) ? survivalPlus.getString(KEY_LIST) : "default";
 	}
 
-	private static void switchInventories(PlayerEntity player, String from, String to) {
-		CompoundNBT survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		ListNBT list = new ListNBT();
+	private static void switchInventories(Player player, String from, String to) {
+		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+		ListTag list = new ListTag();
 		player.inventory.save(list);
 		survivalPlus.put(from, list);
 		List<ItemStack> armor = new ArrayList<>(player.inventory.armor);
@@ -62,26 +62,26 @@ public final class GBPlayerStore {
 		}
 	}
 
-	public static void switchToSPInventory(PlayerEntity player) {
+	public static void switchToSPInventory(Player player) {
 		switchInventories(player, KEY_PLAYER_INVENTORY, KEY_SP_INVENTORY);
 	}
 
-	public static void switchToPlayerInventory(PlayerEntity player) {
+	public static void switchToPlayerInventory(Player player) {
 		switchInventories(player, KEY_SP_INVENTORY, KEY_PLAYER_INVENTORY);
 	}
 
-	private static CompoundNBT getOrCreatePersistent(PlayerEntity player, String key) {
-		CompoundNBT nbt = player.getPersistentData();
-		CompoundNBT persisted = getOrCreateCompound(nbt, PlayerEntity.PERSISTED_NBT_TAG);
+	private static CompoundTag getOrCreatePersistent(Player player, String key) {
+		CompoundTag nbt = player.getPersistentData();
+		CompoundTag persisted = getOrCreateCompound(nbt, Player.PERSISTED_NBT_TAG);
 		return getOrCreateCompound(persisted, key);
 	}
 
-	private static CompoundNBT getOrCreateCompound(CompoundNBT root, String key) {
+	private static CompoundTag getOrCreateCompound(CompoundTag root, String key) {
 		if (root.contains(key, Constants.NBT.TAG_COMPOUND)) {
 			return root.getCompound(key);
 		}
 
-		CompoundNBT compound = new CompoundNBT();
+		CompoundTag compound = new CompoundTag();
 		root.put(key, compound);
 		return compound;
 	}

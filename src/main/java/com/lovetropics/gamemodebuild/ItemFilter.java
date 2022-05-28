@@ -1,15 +1,15 @@
 package com.lovetropics.gamemodebuild;
 
 import com.google.common.base.Predicates;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tags.ITag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.tags.Tag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.LazyValue;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.util.LazyLoadedValue;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.Validate;
 
@@ -23,10 +23,10 @@ public class ItemFilter {
 	
 	private static class LazyItemFilter implements Predicate<Item> {
 		
-		private final LazyValue<Item> item;
+		private final LazyLoadedValue<Item> item;
 		
 		LazyItemFilter(String itemName) {
-			this.item = new LazyValue<>(() -> ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName)));
+			this.item = new LazyLoadedValue<>(() -> ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName)));
 		}
 		
 		@Override
@@ -38,15 +38,15 @@ public class ItemFilter {
 	
 	private static class LazyTagFilter implements Predicate<Item> {
 		
-		private final LazyValue<ITag<Item>> tag;
+		private final LazyLoadedValue<Tag<Item>> tag;
 		
 		LazyTagFilter(String tagName) {
-			this.tag = new LazyValue<>(() -> ItemTags.getAllTags().getTag(new ResourceLocation(tagName)));
+			this.tag = new LazyLoadedValue<>(() -> ItemTags.getAllTags().getTag(new ResourceLocation(tagName)));
 		}
 		
 		@Override
 		public boolean test(Item item) {
-			ITag<Item> t = tag.get();
+			Tag<Item> t = tag.get();
 			return t != null && t.contains(item);
 		}
 	}
@@ -83,10 +83,10 @@ public class ItemFilter {
 	}
 	
 	public List<ItemStack> getAllStacks() {
-		return getStacks(ItemGroup.TAB_SEARCH);
+		return getStacks(CreativeModeTab.TAB_SEARCH);
 	}
 	
-	public List<ItemStack> getStacks(ItemGroup group) {
+	public List<ItemStack> getStacks(CreativeModeTab group) {
 		if (whitelistPredicates.isEmpty()) {
 			return Collections.emptyList();
 		}

@@ -7,12 +7,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.arguments.ItemParser;
-import net.minecraft.item.Item;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.world.item.Item;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.TextComponent;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,13 +20,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Result> {
 	private static final Collection<String> EXAMPLES = Arrays.asList("stick", "minecraft:stick", "#stick");
-	private static final SimpleCommandExceptionType INVALID_FILTER = new SimpleCommandExceptionType(new StringTextComponent("Invalid filter!"));
+	private static final SimpleCommandExceptionType INVALID_FILTER = new SimpleCommandExceptionType(new TextComponent("Invalid filter!"));
 	
 	public static ItemFilterArgument itemFilter() {
 		return new ItemFilterArgument();
 	}
 	
-	public static Result getItemFilter(CommandContext<CommandSource> context, String name) {
+	public static Result getItemFilter(CommandContext<CommandSourceStack> context, String name) {
 		return context.getArgument(name, Result.class);
 	}
 	

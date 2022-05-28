@@ -16,36 +16,36 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
 import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
 import static net.minecraft.command.Commands.argument;
-import static net.minecraft.command.Commands.literal;
+import staticnet.minecraft.commands.Commandss.literal;
 
 public final class GamemodeBuildCommand {
-	private static final SimpleCommandExceptionType FILTER_DID_NOT_EXIST = new SimpleCommandExceptionType(new StringTextComponent("That filter did not exist!"));
+	private static final SimpleCommandExceptionType FILTER_DID_NOT_EXIST = new SimpleCommandExceptionType(new TextComponent("That filter did not exist!"));
 	
-	private static RequiredArgumentBuilder<CommandSource, EntitySelector> getPlayerArg() {
+	private static RequiredArgumentBuilder<CommandSourceStack, EntitySelector> getPlayerArg() {
 		return argument("player", EntityArgument.players());
 	}
 
-	private static RequiredArgumentBuilder<CommandSource, Result> getItemArg() {
+	private static RequiredArgumentBuilder<CommandSourceStack, Result> getItemArg() {
 		return argument("item", ItemFilterArgument.itemFilter());
 	}
 
 	// @formatter:off
-	private static LiteralArgumentBuilder<CommandSource> enable(boolean enable) {
+	private static LiteralArgumentBuilder<CommandSourceStack> enable(boolean enable) {
 		return literal(enable ? "enable" : "disable")
 			.requires(src -> src.hasPermission(4))
 			.executes(ctx -> enable(ctx, null, enable))
@@ -55,12 +55,12 @@ public final class GamemodeBuildCommand {
 			);
 	}
 
-	private static RequiredArgumentBuilder<CommandSource, String> nameArg() {
+	private static RequiredArgumentBuilder<CommandSourceStack, String> nameArg() {
 		return argument("name", StringArgumentType.word())
-				.suggests((ctx, builder) -> ISuggestionProvider.suggest(GBConfigs.SERVER.getLists(), builder));
+				.suggests((ctx, builder) -> SharedSuggestionProvider.suggest(GBConfigs.SERVER.getLists(), builder));
 	}
 
-	private static ArgumentBuilder<CommandSource, ?> listCommands(boolean whitelist) {
+	private static ArgumentBuilder<CommandSourceStack, ?> listCommands(boolean whitelist) {
 		return nameArg()
 			.then(literal("add")
 				.then(
@@ -80,7 +80,7 @@ public final class GamemodeBuildCommand {
 			);
 	}
 
-	public static void register(CommandDispatcher<CommandSource> dispatcher) {
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(
 			literal("build").requires(src -> src.hasPermission(4))
 				.then(enable(true))
@@ -91,7 +91,7 @@ public final class GamemodeBuildCommand {
 						.then(listCommands(false)))
 				.then(literal("set_list").then(getPlayerArg().then(nameArg()
 						.executes(ctx -> {
-							Collection<ServerPlayerEntity> players = EntityArgument.getPlayers(ctx, "player");
+							Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "player");
 							players.forEach(player -> GBPlayerStore.setList(player, StringArgumentType.getString(ctx, "name")));
 							return players.size();
 						}))))
@@ -99,32 +99,32 @@ public final class GamemodeBuildCommand {
 	}
 	// @formatter:on
 	
-	private static int enable(CommandContext<CommandSource> ctx, @Nullable Collection<ServerPlayerEntity> players, boolean state) {
-		CommandSource src = ctx.getSource();
+	private static int enable(CommandContext<CommandSourceStack> ctx, @Nullable Collection<ServerPlayer> players, boolean state) {
+		CommandSourceStack src = ctx.getSource();
 		MinecraftServer server = src.getServer();
 
 		if (players == null) {
 			if (state == GBServerState.isGloballyEnabled()) {
-				throw new CommandException(new StringTextComponent(GamemodeBuild.NAME + " is already " + (state ? "enabled" : "disabled")));
+				throw new CommandRuntimeException(new TextComponent(GamemodeBuild.NAME + " is already " + (state ? "enabled" : "disabled")));
 			}
 
 			GBServerState.setGloballyEnabled(server, state);
-			src.sendSuccess(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
+			src.sendSuccess(new TextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
 			return Command.SINGLE_SUCCESS;
 		}
 
 		players.forEach(p -> GBServerState.setEnabledFor(p, state));
 
-		src.sendSuccess(new StringTextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
+		src.sendSuccess(new TextComponent((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
 		if (state && !GBServerState.isGloballyEnabled()) {
-			src.sendSuccess(new StringTextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").withStyle(TextFormatting.YELLOW), false);
+			src.sendSuccess(new TextComponent("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").withStyle(ChatFormatting.YELLOW), false);
 		}
 
 		return players.size();
 	}
 
-	private static Command<CommandSource> getListAddCommand(boolean whitelist) {
-		return (CommandContext<CommandSource> ctx) -> {
+	private static Command<CommandSourceStack> getListAddCommand(boolean whitelist) {
+		return (CommandContext<CommandSourceStack> ctx) -> {
 			String name = StringArgumentType.getString(ctx, "name");
 			ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 			String entry = filter.asString();
@@ -135,14 +135,14 @@ public final class GamemodeBuildCommand {
 				GBConfigs.SERVER.addToBlacklist(name, entry, true);
 			}
 			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.ADD, whitelist, name, entry));
-			ctx.getSource().sendSuccess(new StringTextComponent("Added '" + entry + "' to " + name + (whitelist ? " whitelist" : " blacklist")), false);
+			ctx.getSource().sendSuccess(new TextComponent("Added '" + entry + "' to " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
 	}
 
-	private static Command<CommandSource> getListRemoveCommand(boolean whitelist) {
-		return (CommandContext<CommandSource> ctx) -> {
+	private static Command<CommandSourceStack> getListRemoveCommand(boolean whitelist) {
+		return (CommandContext<CommandSourceStack> ctx) -> {
 			String name = StringArgumentType.getString(ctx, "name");
 			ItemFilterArgument.Result filter = ItemFilterArgument.getItemFilter(ctx, "item");
 			String entry = filter.asString();
@@ -151,28 +151,28 @@ public final class GamemodeBuildCommand {
 			if (!found) throw FILTER_DID_NOT_EXIST.create();
 
 			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.REMOVE, whitelist, name, entry));
-			ctx.getSource().sendSuccess(new StringTextComponent("Removed '" + entry + "' from " + name + (whitelist ? " whitelist" : " blacklist")), false);
+			ctx.getSource().sendSuccess(new TextComponent("Removed '" + entry + "' from " + name + (whitelist ? " whitelist" : " blacklist")), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
 	}
 
-	private static Command<CommandSource> getListClearCommand(boolean whitelist) {
-		return (CommandContext<CommandSource> ctx) -> {
+	private static Command<CommandSourceStack> getListClearCommand(boolean whitelist) {
+		return (CommandContext<CommandSourceStack> ctx) -> {
 			String name = StringArgumentType.getString(ctx, "name");
 			int count = whitelist ? GBConfigs.SERVER.clearWhitelist(name, true) : GBConfigs.SERVER.clearBlacklist(name, true);
 
 			GBNetwork.CHANNEL.send(PacketDistributor.ALL.noArg(), new ListUpdateMessage(ListUpdateMessage.Operation.CLEAR, whitelist, name, null));
-			ctx.getSource().sendSuccess(new StringTextComponent("Removed " + count + " " +  (whitelist ? " whitelist" : " blacklist") + " entries from " + name), false);
+			ctx.getSource().sendSuccess(new TextComponent("Removed " + count + " " +  (whitelist ? " whitelist" : " blacklist") + " entries from " + name), false);
 
 			return Command.SINGLE_SUCCESS;
 		};
 	}
 
-	private static SuggestionProvider<CommandSource> getSuggestions(boolean whitelist) {
+	private static SuggestionProvider<CommandSourceStack> getSuggestions(boolean whitelist) {
 		return (ctx, builder) -> {
 			String name = StringArgumentType.getString(ctx, "name");
-			return ISuggestionProvider.suggest(whitelist ? GBConfigs.SERVER.getWhitelistStream(name) : GBConfigs.SERVER.getBlacklistStream(name), builder);
+			return SharedSuggestionProvider.suggest(whitelist ? GBConfigs.SERVER.getWhitelistStream(name) : GBConfigs.SERVER.getBlacklistStream(name), builder);
 		};
 	}
 }

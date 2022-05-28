@@ -4,8 +4,8 @@ import java.util.function.Supplier;
 
 import com.lovetropics.gamemodebuild.container.BuildContainer;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -16,11 +16,11 @@ public final class SetScrollMessage {
 		this.scrollOffset = scrollOffset;
 	}
 	
-	public void serialize(PacketBuffer buffer) {
+	public void serialize(FriendlyByteBuf buffer) {
 		buffer.writeVarInt(this.scrollOffset);
 	}
 	
-	public static SetScrollMessage deserialize(PacketBuffer buffer) {
+	public static SetScrollMessage deserialize(FriendlyByteBuf buffer) {
 		return new SetScrollMessage(buffer.readVarInt());
 	}
 	
@@ -28,7 +28,7 @@ public final class SetScrollMessage {
 		NetworkEvent.Context ctx = ctxSupplier.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection() == NetworkDirection.PLAY_TO_SERVER) {
-				ServerPlayerEntity player = ctx.getSender();
+				ServerPlayer player = ctx.getSender();
 				if (player == null) return;
 				
 				if (player.containerMenu instanceof BuildContainer) {
