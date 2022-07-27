@@ -13,7 +13,15 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'eclipse'
 
-version = '1.2.0'
+mod_version = '1.2.0'
+
+if (System.getenv('GITHUB_RUN_NUMBER')) {
+    project.buildnumber = System.getenv('GITHUB_RUN_NUMBER')
+    version = "${mod_version}+${buildnumber}-gha"
+} else {
+    version = "${mod_version}"
+}
+
 group = 'com.lovetropics.gamemodebuild'
 archivesBaseName = 'GamemodeBuild'
 
