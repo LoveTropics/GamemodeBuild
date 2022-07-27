@@ -1,6 +1,6 @@
 name: Java CI with Gradle
 
-on: [push,pull_request]
+on: [push, pull_request]
 jobs:
 
   jdk17:
@@ -23,10 +23,14 @@ jobs:
 
     - name: Locate built JARfile
       id: jar
-      run: echo "##[set-output name=jarfile;]$(ls -1 build/libs/)"
+      run: echo "##[set-output name=jarfile;]$(find build/libs/ -name "*.jar" -not -name "*slim*" -not -name "*source*")"
+
+    - name: Set Artifact name
+      id: jarname
+      run: echo "##[set-output name=jarname;]$(find build/libs/ -name "*.jar" -not -name "*slim*" -not -name "*source*" | sed 's:.*/::')"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2.2.3
       with:
-          name: ${{ steps.jar.outputs.jarfile }}
-          path: build/libs/${{ steps.jar.outputs.jarfile }}
+          name: ${{ steps.jarname.outputs.jarname }}
+          path: ${{ steps.jar.outputs.jarfile }}
