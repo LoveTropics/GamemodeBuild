@@ -13,6 +13,8 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'eclipse'
 
+ext.buildnumber = 0
+
 if (System.getenv('GITHUB_RUN_NUMBER')) {
     project.buildnumber = System.getenv('GITHUB_RUN_NUMBER')
     version = "${mod_version}+${buildnumber}-gha"
