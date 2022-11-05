@@ -33,7 +33,7 @@ public final class GBServerState {
 	}
 	
 	public static void setEnabledFor(ServerPlayer player, boolean enabled) {
-		boolean wasActive = GBPlayerStore.isActive(player);
+		boolean wasActive = isActiveFor(player);
 		GBPlayerStore.setEnabled(player, enabled);
 		notifyPlayerActivity(wasActive, player, NotificationType.ENABLED);
 	}
@@ -51,7 +51,7 @@ public final class GBServerState {
 	
 	public static void setActiveFor(ServerPlayer player, boolean active) {
 		if (isEnabledFor(player) || !active) {
-			boolean wasActive = GBPlayerStore.isActive(player);
+			boolean wasActive = isActiveFor(player);
 			GBPlayerStore.setActive(player, active);
 			notifyPlayerActivity(wasActive, player, NotificationType.ACTIVE);
 		}
