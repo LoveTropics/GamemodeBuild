@@ -2,22 +2,25 @@ package com.lovetropics.gamemodebuild;
 
 import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
+import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
-import net.minecraft.commands.synchronization.ArgumentTypes;
-import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.commands.synchronization.ArgumentTypeInfos;
+import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig.Type;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.regex.Pattern;
 
@@ -25,21 +28,23 @@ import java.util.regex.Pattern;
 public class GamemodeBuild {
 	public static final String MODID = "gamemodebuild";
 	public static final String NAME = "Build Mode";
-	
-	private static final Logger LOGGER = LogManager.getLogger();
+
+	private static final DeferredRegister<ArgumentTypeInfo<?, ?>> ARGUMENT_REGISTER = DeferredRegister.create(ForgeRegistries.COMMAND_ARGUMENT_TYPES, MODID);
+
+	private static final RegistryObject<ArgumentTypeInfo<?, ?>> ITEM_FILTER_ARGUMENT = ARGUMENT_REGISTER.register("item_filter", () -> ArgumentTypeInfos.registerByClass(ItemFilterArgument.class, SingletonArgumentInfo.contextAware(ItemFilterArgument::new)));
 
 	public GamemodeBuild() {
     	// Compatible with all versions that match the semver (excluding the qualifier e.g. "-beta+42")
     	ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(GamemodeBuild::getCompatVersion, (s, v) -> GamemodeBuild.isCompatibleVersion(s)));
 
-        // Register the setup method for modloading
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-		// Register the doClientStuff method for modloading
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
-		
+		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+		modBus.addListener(this::setup);
+		ARGUMENT_REGISTER.register(modBus);
+		BuildContainer.REGISTER.register(modBus);
+
 		// Register ourselves for server and other game events we are interested in
 		MinecraftForge.EVENT_BUS.register(this);
-		
+
 		ModLoadingContext.get().registerConfig(Type.SERVER, GBConfigs.serverSpec);
 	}
 
@@ -56,15 +61,10 @@ public class GamemodeBuild {
 
 	private void setup(final FMLCommonSetupEvent event) {
 		GBNetwork.register();
-		ArgumentTypes.register(GamemodeBuild.MODID + ":item_filter", ItemFilterArgument.class, new EmptyArgumentSerializer<>(ItemFilterArgument::itemFilter));
 	}
-	
-	private void doClientStuff(final FMLClientSetupEvent event) {
-		GBKeyBindings.register();
-	}
-	
+
 	@SubscribeEvent
 	public void registerCommands(RegisterCommandsEvent event) {
-		GamemodeBuildCommand.register(event.getDispatcher());
+		GamemodeBuildCommand.register(event.getDispatcher(), event.getBuildContext());
 	}
 }

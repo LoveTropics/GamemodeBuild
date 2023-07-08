@@ -9,7 +9,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ScreenOpenEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -18,7 +18,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 @EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.FORGE, value = Dist.CLIENT)
 public final class PlayerInventoryHooks {
 	@SubscribeEvent
-	public static void onOpenScreen(ScreenOpenEvent event) {
+	public static void onOpenScreen(ScreenEvent.Opening event) {
 		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) return;
 		
@@ -31,13 +31,13 @@ public final class PlayerInventoryHooks {
 
 			final Inventory inventory = player.getInventory();
 			BuildContainer container = new BuildContainer(0, inventory, player, null);
-			event.setScreen(new BuildScreen(container, inventory, BuildContainer.title()));
+			event.setNewScreen(new BuildScreen(container, inventory, BuildContainer.title()));
 		}
 	}
 	
 	@SubscribeEvent
 	public static void onToss(ItemTossEvent event) {
-		if (GBStackMarker.isMarked(event.getEntityItem().getItem())) {
+		if (GBStackMarker.isMarked(event.getEntity().getItem())) {
 			event.setCanceled(true);
 		}
 	}

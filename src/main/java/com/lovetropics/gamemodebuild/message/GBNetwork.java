@@ -16,28 +16,28 @@ public class GBNetwork {
 
 	public static void register() {
 		CHANNEL.messageBuilder(OpenBuildInventoryMessage.class, 0, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(OpenBuildInventoryMessage::serialize).decoder(OpenBuildInventoryMessage::deserialize)
-				.consumer(OpenBuildInventoryMessage::handle)
+				.encoder(OpenBuildInventoryMessage::serialize).decoder(OpenBuildInventoryMessage::new)
+				.consumerMainThread(OpenBuildInventoryMessage::handle)
 				.add();
 
 		CHANNEL.messageBuilder(SetActiveMessage.class, 1)
-				.encoder(SetActiveMessage::serialize).decoder(SetActiveMessage::deserialize)
-				.consumer(SetActiveMessage::handle)
+				.encoder(SetActiveMessage::serialize).decoder(SetActiveMessage::new)
+				.consumerMainThread(SetActiveMessage::handle)
 				.add();
 		
 		CHANNEL.messageBuilder(SetScrollMessage.class, 2, NetworkDirection.PLAY_TO_SERVER)
-				.encoder(SetScrollMessage::serialize).decoder(SetScrollMessage::deserialize)
-				.consumer(SetScrollMessage::handle)
+				.encoder(SetScrollMessage::serialize).decoder(SetScrollMessage::new)
+				.consumerMainThread(SetScrollMessage::handle)
 				.add();
 		
 		CHANNEL.messageBuilder(ListUpdateMessage.class, 3, NetworkDirection.PLAY_TO_CLIENT)
 				.encoder(ListUpdateMessage::serialize).decoder(ListUpdateMessage::new)
-				.consumer(ListUpdateMessage::handle)
+				.consumerMainThread(ListUpdateMessage::handle)
 				.add();
 		
 		CHANNEL.messageBuilder(UpdateFilterMessage.class, 4, NetworkDirection.PLAY_TO_SERVER)
 				.encoder(UpdateFilterMessage::serialize).decoder(UpdateFilterMessage::new)
-				.consumer(UpdateFilterMessage::handle)
+				.consumerMainThread(UpdateFilterMessage::handle)
 				.add();
 
 	}

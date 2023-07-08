@@ -4,7 +4,7 @@ import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -73,11 +73,11 @@ public final class GBServerState {
 		boolean state = isActiveFor(player);
 		if (type != NotificationType.INITIAL) {
 			if (!GBServerState.isEnabledFor(player) && type == NotificationType.ACTIVE) {
-				player.displayClientMessage(new TextComponent(GamemodeBuild.NAME + " is disabled!"), true);
+				player.displayClientMessage(Component.literal(GamemodeBuild.NAME + " is disabled!"), true);
 			} else if (prevState != state) {
 				GBServerState.switchInventories(player, state);
 				if (state) {
-					player.displayClientMessage(new TextComponent(GamemodeBuild.NAME + " activated"), true);
+					player.displayClientMessage(Component.literal(GamemodeBuild.NAME + " activated"), true);
 				} else {
 	//				// Clear marked stacks from inventory
 	//				for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
@@ -85,7 +85,7 @@ public final class GBServerState {
 	//						player.inventory.removeStackFromSlot(i);
 	//					}
 	//				}
-					player.displayClientMessage(new TextComponent(GamemodeBuild.NAME + " deactivated"), true);
+					player.displayClientMessage(Component.literal(GamemodeBuild.NAME + " deactivated"), true);
 				}
 			}
 		}
@@ -95,10 +95,9 @@ public final class GBServerState {
 	
 	@SubscribeEvent
 	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-		Player player = event.getPlayer();
-		if (!player.level.isClientSide && player instanceof ServerPlayer) {
+		if (event.getEntity() instanceof ServerPlayer player) {
 			// Previous state doesn't matter here
-			notifyPlayerActivity(false, (ServerPlayer) player, NotificationType.INITIAL);
+			notifyPlayerActivity(false, player, NotificationType.INITIAL);
 		}
 	}
 }

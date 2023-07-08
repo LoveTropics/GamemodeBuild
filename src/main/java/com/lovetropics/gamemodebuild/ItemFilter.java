@@ -3,15 +3,22 @@ package com.lovetropics.gamemodebuild;
 import com.google.common.base.Suppliers;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -59,7 +66,7 @@ public class ItemFilter {
 			return item -> true;
 		} else if (predicate.startsWith("#")) {
 			final ResourceLocation tagLocation = new ResourceLocation(predicate.substring(1));
-			return new TagFilter(TagKey.create(Registry.ITEM_REGISTRY, tagLocation));
+			return new TagFilter(TagKey.create(Registries.ITEM, tagLocation));
 		} else {
 			return new LazyItemFilter(predicate);
 		}
@@ -73,21 +80,20 @@ public class ItemFilter {
 		this.blacklistPredicates = new ArrayList<>(blacklist);
 	}
 	
-	public List<ItemStack> getAllStacks() {
-		return getStacks(CreativeModeTab.TAB_SEARCH);
+	public List<ItemStack> getAllStacks(FeatureFlagSet featureFlags, RegistryAccess registryAccess) {
+		return getStacks(featureFlags, registryAccess, BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH));
 	}
 	
-	public List<ItemStack> getStacks(CreativeModeTab group) {
+	private List<ItemStack> getStacks(FeatureFlagSet featureFlags, RegistryAccess registryAccess, CreativeModeTab group) {
 		if (whitelistPredicates.isEmpty()) {
-			return Collections.emptyList();
+			return List.of();
 		}
-
-		NonNullList<ItemStack> ret = NonNullList.create();
-		for (Item item : Registry.ITEM) {
-			item.fillItemCategory(group, ret);
+		CreativeModeTabs.tryRebuildTabContents(featureFlags, true, registryAccess);
+		List<ItemStack> items = new ArrayList<>(group.getDisplayItems());
+		items.removeIf(item -> whitelistPredicates.stream().noneMatch(p -> p.test(item.getItem())));
+		if (!blacklistPredicates.isEmpty()) {
+			items.removeIf(item -> blacklistPredicates.stream().anyMatch(p -> p.test(item.getItem())));
 		}
-		ret.removeIf(s -> whitelistPredicates.stream().noneMatch(p -> p.test(s.getItem())));
-		ret.removeIf(s -> blacklistPredicates.stream().anyMatch(p -> p.test(s.getItem())));
-		return ret;
+		return items;
 	}
 }

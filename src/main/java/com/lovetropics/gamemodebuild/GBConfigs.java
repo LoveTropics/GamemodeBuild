@@ -188,8 +188,6 @@ public class GBConfigs {
 		final Pair<Server, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Server::new);
 		serverSpec = specPair.getRight();
 		SERVER = specPair.getLeft();
-
-		SERVER.loadLists();
 	}
 
 	@SubscribeEvent

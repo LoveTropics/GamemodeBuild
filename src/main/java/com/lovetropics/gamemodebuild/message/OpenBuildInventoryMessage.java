@@ -11,23 +11,18 @@ import net.minecraftforge.network.NetworkHooks;
 
 import java.util.function.Supplier;
 
-public final class OpenBuildInventoryMessage {
-	public void serialize(FriendlyByteBuf buffer) {
-	}
-	
-	public static OpenBuildInventoryMessage deserialize(FriendlyByteBuf buffer) {
-		return new OpenBuildInventoryMessage();
-	}
-	
-	public static boolean handle(OpenBuildInventoryMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
-		NetworkEvent.Context ctx = ctxSupplier.get();
-		ctx.enqueueWork(() -> {
-			ServerPlayer player = ctx.getSender();
-			if (player != null && GBServerState.isActiveFor(player)) {
-				NetworkHooks.openGui(player, new SimpleMenuProvider(BuildContainer::new, BuildContainer.title()), buf -> buf.writeUtf(GBPlayerStore.getList(player)));
-			}
-		});
-		
-		return true;
-	}
+public record OpenBuildInventoryMessage() {
+    public OpenBuildInventoryMessage(FriendlyByteBuf input) {
+        this();
+    }
+
+    public void serialize(FriendlyByteBuf output) {
+    }
+
+    public void handle(Supplier<NetworkEvent.Context> ctx) {
+        ServerPlayer player = ctx.get().getSender();
+        if (player != null && GBServerState.isActiveFor(player)) {
+            NetworkHooks.openScreen(player, new SimpleMenuProvider(BuildContainer::new, BuildContainer.title()), buf -> buf.writeUtf(GBPlayerStore.getList(player)));
+        }
+    }
 }
