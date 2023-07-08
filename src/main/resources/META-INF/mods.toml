@@ -5,7 +5,7 @@ license="ARR"
 
 [[mods]]
 modId="gamemodebuild"
-version="${file.jarVersion}"
+version="$mod_version"
 displayName="Gamemode Build"
 credits=""
 authors="tterrag, Gegy"
@@ -15,13 +15,13 @@ Creative mode without creative. Great for collaborative public building.
 [[dependencies.gamemodebuild]]
     modId="forge"
     mandatory=true
-    versionRange="[36,)"
+    versionRange="[47,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.gamemodebuild]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18,)"
+    versionRange="[1.20,)"
     ordering="NONE"
     side="BOTH"

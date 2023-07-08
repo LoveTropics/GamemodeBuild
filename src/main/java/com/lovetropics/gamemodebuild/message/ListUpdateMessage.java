@@ -6,11 +6,32 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class ListUpdateMessage {
-	final String    name;
-	final boolean   whitelist;
-	final Operation operation;
-	final String    entry;
+public record ListUpdateMessage(Operation operation, boolean whitelist, String name, String entry) {
+	public void handle(Supplier<NetworkEvent.Context> ctx) {
+		switch (operation) {
+			case ADD -> {
+				if (whitelist) {
+					GBConfigs.SERVER.addToWhitelist(name, entry, false);
+				} else {
+					GBConfigs.SERVER.addToBlacklist(name, entry, false);
+				}
+			}
+			case REMOVE -> {
+				if (whitelist) {
+					GBConfigs.SERVER.removeFromWhitelist(name, entry, false);
+				} else {
+					GBConfigs.SERVER.removeFromBlacklist(name, entry, false);
+				}
+			}
+			case CLEAR -> {
+				if (whitelist) {
+					GBConfigs.SERVER.clearWhitelist(name, false);
+				} else {
+					GBConfigs.SERVER.clearBlacklist(name, false);
+				}
+			}
+		}
+	}
 
 	public enum Operation {
 		ADD, REMOVE, CLEAR;
@@ -33,55 +54,15 @@ public class ListUpdateMessage {
 		}
 	}
 
-	public ListUpdateMessage(Operation operation, boolean whitelist, String name, String entry) {
-		this.operation = operation;
-		this.whitelist = whitelist;
-		this.name = name;
-		this.entry = entry;
+	public ListUpdateMessage(FriendlyByteBuf input) {
+		this(Operation.deserialize(input.readByte()), input.readBoolean(), input.readNullable(b -> b.readUtf(64)), input.readNullable(b -> b.readUtf(100)));
 	}
 
-	public ListUpdateMessage(FriendlyByteBuf buf) {
-		this(Operation.deserialize(buf.readByte()), buf.readBoolean(), buf.readBoolean() ? buf.readUtf(64) : null, buf.readBoolean() ? buf.readUtf(100) : null);
-	}
+	public void serialize(FriendlyByteBuf output) {
+		output.writeByte(operation.serialize());
+		output.writeBoolean(whitelist);
 
-	public void serialize(FriendlyByteBuf buf) {
-		buf.writeByte(operation.serialize());
-		buf.writeBoolean(whitelist);
-
-		buf.writeBoolean(name != null);
-		if (name != null) buf.writeUtf(name, 64);
-
-		buf.writeBoolean(entry != null);
-		if (entry != null) buf.writeUtf(entry, 100);
-	}
-
-	public static boolean handle(ListUpdateMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
-		ctxSupplier.get().enqueueWork(() -> {
-			switch (message.operation) {
-				case ADD:
-					if (message.whitelist) {
-						GBConfigs.SERVER.addToWhitelist(message.name, message.entry, false);
-					} else {
-						GBConfigs.SERVER.addToBlacklist(message.name, message.entry, false);
-					}
-					break;
-				case REMOVE:
-					if (message.whitelist) {
-						GBConfigs.SERVER.removeFromWhitelist(message.name, message.entry, false);
-					} else {
-						GBConfigs.SERVER.removeFromBlacklist(message.name, message.entry, false);
-					}
-					break;
-				case CLEAR:
-					if (message.whitelist) {
-						GBConfigs.SERVER.clearWhitelist(message.name, false);
-					} else {
-						GBConfigs.SERVER.clearBlacklist(message.name, false);
-					}
-					break;
-			}
-		});
-		ctxSupplier.get().setPacketHandled(true);
-		return true;
+		output.writeNullable(name, (b, s) -> b.writeUtf(s, 64));
+		output.writeNullable(entry, (b, s) -> b.writeUtf(s, 100));
 	}
 }

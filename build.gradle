@@ -1,17 +1,9 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath "org.parchmentmc:librarian:1.+"
-    }
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'eclipse'
 
 ext.buildnumber = 0
 
@@ -23,17 +15,18 @@ if (System.getenv('GITHUB_RUN_NUMBER')) {
 }
 
 group = 'com.lovetropics.gamemodebuild'
-archivesBaseName = 'GamemodeBuild'
+base {
+    archivesName = 'GamemodeBuild'
+}
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
+    mappings channel: 'parchment', version: parchment_version
     
     runs {
-        client {
-        	taskName 'gb_client'
-        	
+        configureEach {
+            copyIdeResources = true
             workingDirectory project.file('run')
 
             property 'forge.logging.console.level', 'info'
@@ -43,37 +36,23 @@ minecraft {
                     source sourceSets.main
                 }
             }
+        }
+
+        client {
+        	taskName 'gb_client'
         }
 
         server {
         	taskName 'gb_server'
-        	
-            workingDirectory project.file('run')
-
-            property 'forge.logging.console.level', 'info'
-
-            mods {
-                gamemodebuild {
-                    source sourceSets.main
-                }
-            }
         }
 
         data {
         	taskName 'gb_data'
-        	
-            workingDirectory project.file('run')
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             args '--mod', 'gamemodebuild', '--all', '--output', file('src/generated/resources/')
-
-            mods {
-                gamemodebuild {
-                    source sourceSets.main
-                }
-            }
         }
     }
 }
@@ -82,16 +61,34 @@ dependencies {
     minecraft "net.minecraftforge:forge:$minecraft_version-$forge_version"
 }
 
-jar {
+tasks.named('jar', Jar).configure {
+    archiveClassifier = 'slim'
+    finalizedBy 'reobfJar'
+
     manifest {
         attributes([
-            "Specification-Title": "gamemodebuild",
-            "Specification-Vendor": "lovetropics",
-            "Specification-Version": "1",
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"lovetropics",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title": "gamemodebuild",
+                "Specification-Vendor": "lovetropics",
+                "Specification-Version": "1",
+                "Implementation-Title": project.name,
+                "Implementation-Version": archiveVersion,
+                "Implementation-Vendor" :"lovetropics",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
         ])
     }
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            mod_version: mod_version,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }

@@ -8,54 +8,51 @@ import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.registries.ObjectHolder;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
-@EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD)
+@EventBusSubscriber(modid = GamemodeBuild.MODID, bus = Bus.MOD, value = Dist.CLIENT)
 public class BuildContainer extends AbstractContainerMenu {
 	public static final int WIDTH = 9;
 	public static final int HEIGHT = 5;
-	
-	@ObjectHolder(GamemodeBuild.MODID + ":container")
-	public static final MenuType<BuildContainer> TYPE = null;
-	
+
+	public static final DeferredRegister<MenuType<?>> REGISTER = DeferredRegister.create(ForgeRegistries.MENU_TYPES, GamemodeBuild.MODID);
+
+	public static final RegistryObject<MenuType<BuildContainer>> TYPE = REGISTER.register("container", () -> IForgeMenuType.create(BuildContainer::new));
+
 	private static final ThreadLocal<Boolean> SUPPRESS_SEND_CHANGES = new ThreadLocal<>();
 	private boolean takeStacks = false;
-	
+
 	@SubscribeEvent
-	public static void onContainerRegistry(RegistryEvent.Register<MenuType<?>> event) {
-		MenuType<BuildContainer> type = IForgeMenuType.create(BuildContainer::new);
-		event.getRegistry().register(type.setRegistryName("container"));
-		
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> MenuScreens.register(type, BuildScreen::new));
+	public static void onClientSetup(FMLClientSetupEvent event) {
+		event.enqueueWork(() -> MenuScreens.register(TYPE.get(), BuildScreen::new));
 	}
 	
-	public static TextComponent title() {
-		return new TextComponent("Build Mode");
+	public static Component title() {
+		return Component.literal("Build Mode");
 	}
 	
 	public class InfiniteInventory implements Container {
@@ -137,7 +134,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		@OnlyIn(Dist.CLIENT)
 		public BitSet applyFilter(String filter) {
 			BitSet filteredSlots = new BitSet();
-			Locale locale = Minecraft.getInstance().getLanguageManager().getSelected().getJavaLocale();
+			Locale locale = Minecraft.getInstance().getLanguageManager().getJavaLocale();
 			filter = filter.toLowerCase(locale);
 			if (!Strings.isNullOrEmpty(filter)) {
 				for (int i = 0; i < this.masterItems.size(); i++) {
@@ -211,10 +208,12 @@ public class BuildContainer extends AbstractContainerMenu {
 	}
 
 	public BuildContainer(int windowId, Inventory playerInventory, Player player, @Nullable String list) {
-		super(TYPE, windowId);
+		super(TYPE.get(), windowId);
 		this.player = player;
-		
-		List<ItemStack> buildingStacks = list == null ? Collections.emptyList() : GBConfigs.SERVER.getFilter(list).getAllStacks();
+
+		FeatureFlagSet featureFlags = player.level().enabledFeatures();
+		RegistryAccess registryAccess = player.level().registryAccess();
+		List<ItemStack> buildingStacks = list == null ? List.of() : GBConfigs.SERVER.getFilter(list).getAllStacks(featureFlags, registryAccess);
 		this.inventory = new InfiniteInventory(player, buildingStacks);
 		
 		for (int y = 0; y < HEIGHT; y++) {
@@ -235,7 +234,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		if (this.scrollOffset != scrollOffset) {
 			this.scrollOffset = scrollOffset;
 			
-			if (this.player.level.isClientSide) {
+			if (this.player.level().isClientSide) {
 				GBNetwork.CHANNEL.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
@@ -292,7 +291,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		}
 		this.takeStacks = clickTypeIn == ClickType.SWAP;
 		ItemStack oldCursor = getCarried().copy();
-		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && getSlot(slotId).getItem().sameItem(oldCursor)) {
+		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && ItemStack.isSameItemSameTags(getSlot(slotId).getItem(), oldCursor)) {
 			// Allow pulling single items into an existing stack
 			ItemStack ret = oldCursor.copy();
 			if (ret.getCount() < ret.getMaxStackSize()) {
@@ -304,7 +303,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		super.clicked(slotId, dragType, clickTypeIn, player);
 		ItemStack newCursor = getCarried();
 		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
-			if (!oldCursor.sameItem(newCursor)) {
+			if (!ItemStack.isSameItemSameTags(oldCursor, newCursor)) {
 				setCarried(ItemStack.EMPTY);
 			} else {
 				newCursor.setCount(Math.max(oldCursor.getCount(), newCursor.getCount()));
@@ -320,8 +319,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		
 		// recreate shift-click to pick up max stack behaviour
 		if (slot instanceof InfiniteSlot) {
-			ItemStack stack = slot.getItem().copy();
-			stack.setCount(stack.getMaxStackSize());
+			ItemStack stack = slot.getItem().copyWithCount(slot.getItem().getMaxStackSize());
 			setCarried(stack);
 			
 			return ItemStack.EMPTY;
