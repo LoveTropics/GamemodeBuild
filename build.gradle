@@ -62,7 +62,6 @@ dependencies {
 }
 
 tasks.named('jar', Jar).configure {
-    archiveClassifier = 'slim'
     finalizedBy 'reobfJar'
 
     manifest {
