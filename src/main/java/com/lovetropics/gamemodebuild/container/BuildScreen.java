@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 
 import java.util.BitSet;
+import java.util.Objects;
 
 public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 
@@ -56,6 +57,16 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	protected void containerTick() {
 		super.containerTick();
 		searchField.tick();
+	}
+
+	@Override
+	public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
+		if (searchField.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		} else if (searchField.isFocused() && searchField.isVisible() && keyCode != InputConstants.KEY_ESCAPE) {
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	private void updateSearch(final String searchFilter) {
