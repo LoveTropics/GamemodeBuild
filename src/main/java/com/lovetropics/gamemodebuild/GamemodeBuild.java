@@ -4,11 +4,17 @@ import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
 import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
+import com.lovetropics.gamemodebuild.state.GBClientState;
+import com.lovetropics.gamemodebuild.state.GBPlayerStore;
+import com.lovetropics.gamemodebuild.state.GBServerState;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint;
@@ -66,5 +72,23 @@ public class GamemodeBuild {
 	@SubscribeEvent
 	public void registerCommands(RegisterCommandsEvent event) {
 		GamemodeBuildCommand.register(event.getDispatcher(), event.getBuildContext());
+	}
+
+	@SubscribeEvent
+	public void onBreakSpeed(final PlayerEvent.BreakSpeed event) {
+		if (event.getEntity().onGround()) return;
+
+		if (GBConfigs.SERVER.removeBreakSpeedDebuff() && isActive(event.getEntity())) {
+			// See Player#getDigSpeed, if the player is flying they break blocks 5 times slower.
+			// Let's revert that as it's an annoying limitation in build mode
+			event.setNewSpeed(event.getNewSpeed() * 5f);
+		}
+	}
+
+	private boolean isActive(Player player) {
+		if (player.level().isClientSide()) {
+			return GBClientState.isActive();
+		}
+		return player instanceof ServerPlayer sp ? GBServerState.isActiveFor(sp) : GBPlayerStore.isActive(player);
 	}
 }
