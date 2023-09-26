@@ -85,7 +85,7 @@ public class GamemodeBuild {
 		}
 	}
 
-	private boolean isActive(Player player) {
+	public static boolean isActive(Player player) {
 		if (player.level().isClientSide()) {
 			return GBClientState.isActive();
 		}
