@@ -5,7 +5,8 @@
   "refmap": "gamemodebuild.refmap.json",
   "mixins": [
     "BlockItemMixin",
-    "BucketItemMixin"
+    "BucketItemMixin",
+    "CreativeModeTabAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
