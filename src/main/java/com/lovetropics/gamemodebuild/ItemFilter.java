@@ -1,43 +1,31 @@
 package com.lovetropics.gamemodebuild;
 
-import com.google.common.base.Suppliers;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
+import com.lovetropics.gamemodebuild.mixin.CreativeModeTabAccessor;
+import net.minecraft.Util;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.SingleKeyCache;
 import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraft.world.flag.FeatureFlags;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.*;
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ItemFilter {
 	
-	private static class LazyItemFilter implements Predicate<Item> {
-		private final Supplier<Item> item;
-		
-		LazyItemFilter(String itemName) {
-			this.item = Suppliers.memoize(() -> ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName)));
-		}
-		
+	private record ItemTypeFilter(ResourceKey<Item> item) implements Predicate<Item> {
 		@Override
-		public boolean test(Item t) {
-			Item i = item.get();
-			return i != null && i == t;
+		public boolean test(Item item) {
+			return item.builtInRegistryHolder().is(this.item);
 		}
 	}
 
@@ -68,32 +56,76 @@ public class ItemFilter {
 			final ResourceLocation tagLocation = new ResourceLocation(predicate.substring(1));
 			return new TagFilter(TagKey.create(Registries.ITEM, tagLocation));
 		} else {
-			return new LazyItemFilter(predicate);
+			final ResourceLocation location = new ResourceLocation(predicate);
+			return new ItemTypeFilter(ResourceKey.create(Registries.ITEM, location));
 		}
 	}
 	
 	private final List<Predicate<Item>> whitelistPredicates;
 	private final List<Predicate<Item>> blacklistPredicates;
-	
+	private final SingleKeyCache<Key, List<ItemStack>> cache;
+
 	private ItemFilter(List<Predicate<Item>> whitelist, List<Predicate<Item>> blacklist) {
 		this.whitelistPredicates = new ArrayList<>(whitelist);
 		this.blacklistPredicates = new ArrayList<>(blacklist);
+		cache = Util.singleKeyCache(key -> computeStacks(key.featureFlags(), key.registryAccess(), BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH)));
 	}
 	
-	public List<ItemStack> getAllStacks(FeatureFlagSet featureFlags, RegistryAccess registryAccess) {
-		return getStacks(featureFlags, registryAccess, BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH));
+	public List<ItemStack> getAllStacks(FeatureFlagSet enabledFeatures, RegistryAccess registryAccess) {
+		return cache.getValue(new Key(enabledFeatures, registryAccess));
 	}
-	
-	private List<ItemStack> getStacks(FeatureFlagSet featureFlags, RegistryAccess registryAccess, CreativeModeTab group) {
+
+	private List<ItemStack> computeStacks(FeatureFlagSet enabledFeatures, HolderLookup.Provider registryAccess, CreativeModeTab group) {
 		if (whitelistPredicates.isEmpty()) {
 			return List.of();
 		}
-		CreativeModeTabs.tryRebuildTabContents(featureFlags, true, registryAccess);
-		List<ItemStack> items = new ArrayList<>(group.getDisplayItems());
-		items.removeIf(item -> whitelistPredicates.stream().noneMatch(p -> p.test(item.getItem())));
+
+		Set<ItemStack> items = ItemStackLinkedSet.createTypeAndTagSet();
+		CreativeModeTab.Output output = createFilteredOutput(items);
+
+		CreativeModeTab.ItemDisplayParameters parameters = new CreativeModeTab.ItemDisplayParameters(enabledFeatures, true, registryAccess);
+		for (CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
+            if (tab.getType() == CreativeModeTab.Type.SEARCH) {
+            	continue;
+			}
+			CreativeModeTab.DisplayItemsGenerator generator = ((CreativeModeTabAccessor) tab).getDisplayItemsGenerator();
+			generator.accept(parameters, output);
+        }
+
+		return List.copyOf(items);
+	}
+
+	private CreativeModeTab.Output createFilteredOutput(final Set<ItemStack> items) {
+		final Predicate<ItemStack> whitelist = stack -> {
+			for (final Predicate<Item> predicate : whitelistPredicates) {
+				if (predicate.test(stack.getItem())) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		final Predicate<ItemStack> blacklist;
 		if (!blacklistPredicates.isEmpty()) {
-			items.removeIf(item -> blacklistPredicates.stream().anyMatch(p -> p.test(item.getItem())));
+			blacklist = stack -> {
+				for (final Predicate<Item> predicate : blacklistPredicates) {
+					if (predicate.test(stack.getItem())) {
+						return false;
+					}
+				}
+				return true;
+			};
+		} else {
+			blacklist = stack -> true;
 		}
-		return items;
+
+        return (stack, visibility) -> {
+			if (whitelist.test(stack) && blacklist.test(stack)) {
+				items.add(stack);
+			}
+		};
+	}
+
+	private record Key(FeatureFlagSet featureFlags, HolderLookup.Provider registryAccess) {
 	}
 }
