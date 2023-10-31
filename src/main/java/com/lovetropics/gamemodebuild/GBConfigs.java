@@ -22,7 +22,6 @@ import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.fml.config.ModConfig;
 
 @EventBusSubscriber (modid = GamemodeBuild.MODID, bus = Bus.MOD)
 public class GBConfigs {
@@ -58,6 +57,7 @@ public class GBConfigs {
 
 		final BooleanValue enabled;
 		final BooleanValue removeBreakSpeedDebuff;
+		final BooleanValue playerDefaultEnabled;
 
 		final Map<String, ItemFilter> filters = new HashMap<>();;
 
@@ -77,6 +77,7 @@ public class GBConfigs {
 
 			enabled = builder.comment("Enable SurvivalPlus for all players").define("enabled", true);
 			removeBreakSpeedDebuff = builder.comment("If true, players will break blocks in build mode as fast as if they were not flying").define("removeBreakSpeedDebuff", true);
+			playerDefaultEnabled = builder.comment("Enable for all players by default. If false, you will need to use /build enable @s to enable for a player.").define("playerDefaultEnabled", true);
 		}
 
 		void loadLists() {
@@ -180,6 +181,10 @@ public class GBConfigs {
 
 		public boolean enabled() {
 			return enabled.get();
+		}
+
+		public boolean playerDefaultEnabled() {
+			return playerDefaultEnabled.get();
 		}
 
 		public boolean removeBreakSpeedDebuff() {
