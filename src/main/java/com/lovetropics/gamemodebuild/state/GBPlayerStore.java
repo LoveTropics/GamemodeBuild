@@ -1,5 +1,6 @@
 package com.lovetropics.gamemodebuild.state;
 
+import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -25,6 +26,9 @@ public final class GBPlayerStore {
 
 	public static boolean isEnabled(Player player) {
 		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
+		if (!survivalPlus.contains(KEY_ENABLED)) {
+			return GBConfigs.SERVER.playerDefaultEnabled();
+		}
 		return !survivalPlus.contains(KEY_ENABLED) || survivalPlus.getBoolean(KEY_ENABLED);
 	}
 
