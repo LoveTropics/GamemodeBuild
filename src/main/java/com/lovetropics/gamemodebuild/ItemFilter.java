@@ -12,10 +12,14 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.SingleKeyCache;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.*;
+import net.minecraftforge.common.util.MutableHashedLinkedMap;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.fml.ModLoader;
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -68,14 +72,14 @@ public class ItemFilter {
 	private ItemFilter(List<Predicate<Item>> whitelist, List<Predicate<Item>> blacklist) {
 		this.whitelistPredicates = new ArrayList<>(whitelist);
 		this.blacklistPredicates = new ArrayList<>(blacklist);
-		cache = Util.singleKeyCache(key -> computeStacks(key.featureFlags(), key.registryAccess(), BuiltInRegistries.CREATIVE_MODE_TAB.get(CreativeModeTabs.SEARCH)));
+		cache = Util.singleKeyCache(key -> computeStacks(key.featureFlags(), key.registryAccess()));
 	}
 	
 	public List<ItemStack> getAllStacks(FeatureFlagSet enabledFeatures, RegistryAccess registryAccess) {
 		return cache.getValue(new Key(enabledFeatures, registryAccess));
 	}
 
-	private List<ItemStack> computeStacks(FeatureFlagSet enabledFeatures, HolderLookup.Provider registryAccess, CreativeModeTab group) {
+	private List<ItemStack> computeStacks(FeatureFlagSet enabledFeatures, HolderLookup.Provider registryAccess) {
 		if (whitelistPredicates.isEmpty()) {
 			return List.of();
 		}
@@ -84,15 +88,25 @@ public class ItemFilter {
 		CreativeModeTab.Output output = createFilteredOutput(items);
 
 		CreativeModeTab.ItemDisplayParameters parameters = new CreativeModeTab.ItemDisplayParameters(enabledFeatures, true, registryAccess);
-		for (CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
-            if (tab.getType() == CreativeModeTab.Type.SEARCH) {
-            	continue;
-			}
-			CreativeModeTab.DisplayItemsGenerator generator = ((CreativeModeTabAccessor) tab).getDisplayItemsGenerator();
-			generator.accept(parameters, output);
+		for (Map.Entry<ResourceKey<CreativeModeTab>, CreativeModeTab> entry : BuiltInRegistries.CREATIVE_MODE_TAB.entrySet()) {
+			CreativeModeTab tab = entry.getValue();
+            if (tab.getType() != CreativeModeTab.Type.SEARCH) {
+                generateItems(entry.getKey(), tab, parameters, output);
+            }
         }
 
 		return List.copyOf(items);
+	}
+
+	// We have to invoke this logic ourselves, as Forge hooks the Vanilla path in such a way that it classloads client-side code
+	private static void generateItems(ResourceKey<CreativeModeTab> tabKey, CreativeModeTab tab, CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+		CreativeModeTab.DisplayItemsGenerator originalGenerator = ((CreativeModeTabAccessor) tab).getDisplayItemsGenerator();
+
+		MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> entries = new MutableHashedLinkedMap<>(ItemStackLinkedSet.TYPE_AND_TAG, (key, left, right) -> CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+		originalGenerator.accept(parameters, entries::put);
+		ModLoader.get().postEvent(new BuildCreativeModeTabContentsEvent(tab, tabKey, parameters, entries));
+
+		entries.forEach(e -> output.accept(e.getKey()));
 	}
 
 	private CreativeModeTab.Output createFilteredOutput(final Set<ItemStack> items) {
