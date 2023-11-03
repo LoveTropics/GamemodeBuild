@@ -88,7 +88,8 @@ public class GamemodeBuild {
 	public static boolean isActive(Player player) {
 		if (player.level().isClientSide()) {
 			return GBClientState.isActive();
+		} else {
+			return GBServerState.isActiveFor(player);
 		}
-		return player instanceof ServerPlayer sp ? GBServerState.isActiveFor(sp) : GBPlayerStore.isActive(player);
 	}
 }

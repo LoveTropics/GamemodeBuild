@@ -9,14 +9,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class GBPlayerStore {
 	private static final String KEY_ACTIVE = "active";
 	private static final String KEY_ENABLED = "enabled";
 	private static final String KEY_PLAYER_INVENTORY = "playerinv";
-	private static final String KEY_SP_INVENTORY = "buildinv";
+	private static final String KEY_BUILD_INVENTORY = "buildinv";
 	private static final String KEY_LIST = "list";
 
 	public static void setEnabled(Player player, boolean enabled) {
@@ -52,27 +51,36 @@ public final class GBPlayerStore {
 		return survivalPlus.contains(KEY_LIST) ? survivalPlus.getString(KEY_LIST) : "default";
 	}
 
-	private static void switchInventories(Player player, String from, String to) {
-		final Inventory inventory = player.getInventory();
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		ListTag list = new ListTag();
-		inventory.save(list);
-		survivalPlus.put(from, list);
-		List<ItemStack> armor = new ArrayList<>(inventory.armor);
-		inventory.clearContent();
-
-		inventory.load(survivalPlus.getList(to, Tag.TAG_COMPOUND));
-		for (int i = 0; i < armor.size(); i++) {
-			inventory.armor.set(i, armor.get(i));
+	public static void switchToInventory(Player player, boolean buildMode) {
+		if (buildMode) {
+			switchInventories(player, KEY_PLAYER_INVENTORY, KEY_BUILD_INVENTORY);
+		} else {
+			switchInventories(player, KEY_BUILD_INVENTORY, KEY_PLAYER_INVENTORY);
 		}
 	}
 
-	public static void switchToSPInventory(Player player) {
-		switchInventories(player, KEY_PLAYER_INVENTORY, KEY_SP_INVENTORY);
+	private static void switchInventories(Player player, String from, String to) {
+		ListTag currentInventory = new ListTag();
+		player.getInventory().save(currentInventory);
+		ListTag newInventory = swapInventoryTag(player, from, to, currentInventory);
+		loadInventory(player.getInventory(), newInventory);
 	}
 
-	public static void switchToPlayerInventory(Player player) {
-		switchInventories(player, KEY_SP_INVENTORY, KEY_PLAYER_INVENTORY);
+	private static ListTag swapInventoryTag(Player player, String from, String to, ListTag inventory) {
+		CompoundTag tag = getOrCreatePersistent(player, GamemodeBuild.MODID);
+		ListTag newInventory = tag.getList(to, Tag.TAG_COMPOUND);
+		tag.remove(to);
+		tag.put(from, inventory);
+		return newInventory;
+	}
+
+	private static void loadInventory(Inventory inventory, ListTag tag) {
+		List<ItemStack> armor = List.copyOf(inventory.armor);
+		inventory.clearContent();
+		inventory.load(tag);
+		for (int i = 0; i < armor.size(); i++) {
+			inventory.armor.set(i, armor.get(i));
+		}
 	}
 
 	private static CompoundTag getOrCreatePersistent(Player player, String key) {
