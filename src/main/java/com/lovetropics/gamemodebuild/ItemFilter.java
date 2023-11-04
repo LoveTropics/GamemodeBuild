@@ -88,12 +88,12 @@ public class ItemFilter {
 		CreativeModeTab.Output output = createFilteredOutput(items);
 
 		CreativeModeTab.ItemDisplayParameters parameters = new CreativeModeTab.ItemDisplayParameters(enabledFeatures, true, registryAccess);
-		for (Map.Entry<ResourceKey<CreativeModeTab>, CreativeModeTab> entry : BuiltInRegistries.CREATIVE_MODE_TAB.entrySet()) {
-			CreativeModeTab tab = entry.getValue();
-            if (tab.getType() != CreativeModeTab.Type.SEARCH) {
-                generateItems(entry.getKey(), tab, parameters, output);
-            }
-        }
+		BuiltInRegistries.CREATIVE_MODE_TAB.holders().forEach(holder -> {
+			CreativeModeTab tab = holder.value();
+			if (tab.getType() != CreativeModeTab.Type.SEARCH) {
+				generateItems(holder.key(), tab, parameters, output);
+			}
+		});
 
 		return List.copyOf(items);
 	}
