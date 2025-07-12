@@ -5,7 +5,6 @@ import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
 import com.lovetropics.gamemodebuild.state.GBPlayerStore;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,10 +18,8 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -123,10 +120,8 @@ public class BuildContainer extends AbstractContainerMenu {
 			}
 		}
 
-		@OnlyIn(Dist.CLIENT) // TODO - get rid of onlyin
-		public BitSet applyFilter(String filter) {
+		public BitSet applyFilter(Locale locale, String filter) {
 			BitSet filteredSlots = new BitSet();
-			Locale locale = Minecraft.getInstance().getLanguageManager().getJavaLocale();
 			filter = filter.toLowerCase(locale);
 			if (!Strings.isNullOrEmpty(filter)) {
 				for (int i = 0; i < this.masterItems.size(); i++) {
@@ -227,7 +222,7 @@ public class BuildContainer extends AbstractContainerMenu {
 			this.scrollOffset = scrollOffset;
 			
 			if (this.player.level().isClientSide) {
-				PacketDistributor.sendToServer(new SetScrollMessage(scrollOffset));
+				ClientPacketDistributor.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
 			for (Slot slot : this.slots) {
@@ -245,10 +240,9 @@ public class BuildContainer extends AbstractContainerMenu {
 	public boolean canScroll() {
 		return this.inventory.items.size() > WIDTH * HEIGHT;
 	}
-	
-	@OnlyIn(Dist.CLIENT)
-	public BitSet applyFilter(String filter) {
-		return this.inventory.applyFilter(filter);
+
+	public BitSet applyFilter(Locale locale, String filter) {
+		return this.inventory.applyFilter(locale, filter);
 	}
 	
 	public void setFilter(BitSet filteredSlots) {

@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '1.0.14'
+    id 'net.neoforged.moddev' version '2.0.99'
 }
 
 ext.buildnumber = 0
@@ -46,7 +46,7 @@ neoForge {
         }
 
         data {
-        	data()
+            serverData()
 
             systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             systemProperty 'forge.logging.console.level', 'debug'
