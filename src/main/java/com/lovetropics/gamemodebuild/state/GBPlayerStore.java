@@ -22,7 +22,6 @@ public final class GBPlayerStore {
 
 	public static void setEnabled(Player player, boolean enabled) {
 		getOrCreateData(player).enabled = enabled;
-		player.shouldBeSaved();
 	}
 
 	public static boolean isEnabled(Player player) {
@@ -31,7 +30,6 @@ public final class GBPlayerStore {
 
 	public static void setActive(Player player, boolean active) {
 		getOrCreateData(player).active = active;
-		player.shouldBeSaved();
 	}
 
 	public static boolean isActive(Player player) {
@@ -40,7 +38,6 @@ public final class GBPlayerStore {
 
 	public static void setList(Player player, String list) {
 		getOrCreateData(player).list = list;
-		player.shouldBeSaved();
 	}
 
 	public static String getList(Player player) {
@@ -54,7 +51,6 @@ public final class GBPlayerStore {
 		} else {
 			switchInventories(player, attachment.buildInventory, attachment.playerInventory);
 		}
-		player.shouldBeSaved();
 	}
 
 	private static void switchInventories(Player player, List<ItemStackWithSlot> from, List<ItemStackWithSlot> to) {

@@ -35,8 +35,8 @@ public class ServerGamePacketListenerImplMixin {
         return original;
     }
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), method = "handlePickItemFromBlock", cancellable = true)
-    private void handlePickItemFromBlock(ServerboundPickItemFromBlockPacket packet, CallbackInfo ci, @Local ItemStack stack) {
+    @Inject(method = "tryPickItem", at = @At(value = "HEAD"), cancellable = true)
+    private void handlePickItemFromBlock(ItemStack stack, CallbackInfo ci) {
         if (!GBServerState.isActiveFor(player)) {
             return;
         }
