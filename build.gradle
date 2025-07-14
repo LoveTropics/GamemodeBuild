@@ -46,7 +46,7 @@ neoForge {
         }
 
         data {
-            serverData()
+            clientData()
 
             systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             systemProperty 'forge.logging.console.level', 'debug'
