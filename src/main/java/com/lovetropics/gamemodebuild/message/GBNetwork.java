@@ -22,11 +22,6 @@ public class GBNetwork {
 				UpdateFilterMessage.CODEC,
 				UpdateFilterMessage::handle
 		);
-		registrar.playToServer(
-				SetGamemodeBuildSlotPacket.TYPE,
-				SetGamemodeBuildSlotPacket.CODEC,
-				SetGamemodeBuildSlotPacket::handle
-		);
 
 		registrar.playBidirectional(
 				SetActiveMessage.TYPE,
@@ -36,8 +31,7 @@ public class GBNetwork {
 
 		registrar.playToClient(
 				ListUpdateMessage.TYPE,
-				ListUpdateMessage.CODEC,
-				ListUpdateMessage::handle
+				ListUpdateMessage.CODEC
 		);
 	}
 }

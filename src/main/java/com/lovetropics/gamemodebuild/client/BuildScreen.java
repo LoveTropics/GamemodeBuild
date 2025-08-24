@@ -4,17 +4,20 @@ import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import java.util.BitSet;
+import java.util.Locale;
 
 public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 
@@ -65,8 +68,9 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	}
 
 	private void updateSearch(final String searchFilter) {
-		final BitSet filteredSlots = menu.applyFilter(searchFilter);
-		PacketDistributor.sendToServer(new UpdateFilterMessage(filteredSlots));
+		Locale locale = Minecraft.getInstance().getLanguageManager().getJavaLocale();
+		final BitSet filteredSlots = menu.applyFilter(locale, searchFilter);
+		ClientPacketDistributor.sendToServer(new UpdateFilterMessage(filteredSlots));
 		updateScroll(scrollAmount); // Refresh scrollbar
 	}
 
@@ -84,11 +88,11 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 
 	@Override
 	protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
-		graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
 
 		if (menu.canScroll()) {
 			final Rect2i rect = scrollRect();
-			graphics.blitSprite(SCROLLER, rect.left, rect.top, rect.width, rect.height);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, rect.left, rect.top, rect.width, rect.height);
 		}
 	}
 
