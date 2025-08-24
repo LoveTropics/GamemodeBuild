@@ -7,15 +7,15 @@ import com.lovetropics.gamemodebuild.state.GBClientState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.util.TriState;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ScreenEvent;
-import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(value = Dist.CLIENT)
 public final class PlayerInventoryHooks {
@@ -29,7 +29,7 @@ public final class PlayerInventoryHooks {
 		}
 		
 		if (event.getScreen() instanceof InventoryScreen) {
-			PacketDistributor.sendToServer(new OpenBuildInventoryMessage());
+			ClientPacketDistributor.sendToServer(new OpenBuildInventoryMessage());
 
 			final Inventory inventory = player.getInventory();
 			BuildContainer container = new BuildContainer(0, inventory, player, null);

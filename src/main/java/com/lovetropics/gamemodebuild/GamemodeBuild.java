@@ -1,11 +1,13 @@
 package com.lovetropics.gamemodebuild;
 
+import com.lovetropics.gamemodebuild.command.GBCommandSelectors;
 import com.lovetropics.gamemodebuild.command.GamemodeBuildCommand;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument;
 import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.container.GBStackMarker;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.state.GBClientState;
+import com.lovetropics.gamemodebuild.state.GBPlayerStore;
 import com.lovetropics.gamemodebuild.state.GBServerState;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
@@ -20,10 +22,13 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.regex.Pattern;
 
@@ -33,12 +38,16 @@ public class GamemodeBuild {
 	public static final String NAME = "Build Mode";
 
 	private static final DeferredRegister<ArgumentTypeInfo<?, ?>> ARGUMENT_REGISTER = DeferredRegister.create(Registries.COMMAND_ARGUMENT_TYPE, MODID);
+	private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MODID);
 
 	private static final Holder<ArgumentTypeInfo<?, ?>> ITEM_FILTER_ARGUMENT = ARGUMENT_REGISTER.register("item_filter", () -> ArgumentTypeInfos.registerByClass(ItemFilterArgument.class, SingletonArgumentInfo.contextAware(ItemFilterArgument::new)));
+
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<GBPlayerStore.GBPlayerAttachment>> PLAYER_ATTACHMENT = ATTACHMENT_TYPES.register("data", () -> AttachmentType.builder(GBPlayerStore.GBPlayerAttachment::new).serialize(GBPlayerStore.GBPlayerAttachment.CODEC).copyOnDeath().build());
 
 	public GamemodeBuild(IEventBus modBus, ModContainer container) {
 		modBus.addListener(GBNetwork::register);
 		ARGUMENT_REGISTER.register(modBus);
+		ATTACHMENT_TYPES.register(modBus);
 		BuildContainer.REGISTER.register(modBus);
 		GBStackMarker.TYPES.register(modBus);
 
@@ -46,6 +55,8 @@ public class GamemodeBuild {
 		NeoForge.EVENT_BUS.register(this);
 
 		container.registerConfig(ModConfig.Type.SERVER, GBConfigs.serverSpec);
+
+		GBCommandSelectors.init();
 	}
 
 	public static ResourceLocation rl(String path) {

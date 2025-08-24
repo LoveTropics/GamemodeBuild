@@ -10,7 +10,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 @EventBusSubscriber(value = Dist.CLIENT)
 public class GBKeyBindings {
@@ -23,7 +23,7 @@ public class GBKeyBindings {
 			if (player != null) {
 				// don't set local state: await confirmation from the server
 				boolean active = !GBClientState.isActive();
-				PacketDistributor.sendToServer(new SetActiveMessage(active));
+				ClientPacketDistributor.sendToServer(new SetActiveMessage(active));
 			}
 		}
 	}

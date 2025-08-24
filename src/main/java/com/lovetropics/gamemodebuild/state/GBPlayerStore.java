@@ -2,100 +2,134 @@ package com.lovetropics.gamemodebuild.state;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import com.lovetropics.gamemodebuild.container.GBStackMarker;
+import com.lovetropics.gamemodebuild.mixin.InventoryAccessor;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.ItemStackWithSlot;
+import net.minecraft.world.entity.EntityEquipment;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class GBPlayerStore {
-	private static final String KEY_ACTIVE = "active";
-	private static final String KEY_ENABLED = "enabled";
-	private static final String KEY_PLAYER_INVENTORY = "playerinv";
-	private static final String KEY_BUILD_INVENTORY = "buildinv";
-	private static final String KEY_LIST = "list";
 
 	public static void setEnabled(Player player, boolean enabled) {
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		survivalPlus.putBoolean(KEY_ENABLED, enabled);
+		getOrCreateData(player).enabled = enabled;
 	}
 
 	public static boolean isEnabled(Player player) {
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		if (!survivalPlus.contains(KEY_ENABLED)) {
-			return GBConfigs.SERVER.playerDefaultEnabled();
-		}
-		return !survivalPlus.contains(KEY_ENABLED) || survivalPlus.getBoolean(KEY_ENABLED);
+		return getOrCreateData(player).enabled;
 	}
 
 	public static void setActive(Player player, boolean active) {
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		survivalPlus.putBoolean(KEY_ACTIVE, active);
+		getOrCreateData(player).active = active;
 	}
 
 	public static boolean isActive(Player player) {
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		return survivalPlus.getBoolean(KEY_ACTIVE);
+		return getOrCreateData(player).active;
 	}
 
 	public static void setList(Player player, String list) {
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		survivalPlus.putString(KEY_LIST, list);
+		getOrCreateData(player).list = list;
 	}
 
 	public static String getList(Player player) {
-		CompoundTag survivalPlus = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		return survivalPlus.contains(KEY_LIST) ? survivalPlus.getString(KEY_LIST) : "default";
+		return getOrCreateData(player).list;
 	}
 
 	public static void switchToInventory(Player player, boolean buildMode) {
+		GBPlayerAttachment attachment = getOrCreateData(player);
 		if (buildMode) {
-			switchInventories(player, KEY_PLAYER_INVENTORY, KEY_BUILD_INVENTORY);
+			switchInventories(player, attachment.playerInventory, attachment.buildInventory);
 		} else {
-			switchInventories(player, KEY_BUILD_INVENTORY, KEY_PLAYER_INVENTORY);
+			switchInventories(player, attachment.buildInventory, attachment.playerInventory);
 		}
 	}
 
-	private static void switchInventories(Player player, String from, String to) {
-		ListTag currentInventory = new ListTag();
-		player.getInventory().save(currentInventory);
-		ListTag newInventory = swapInventoryTag(player, from, to, currentInventory);
-		loadInventory(player.getInventory(), newInventory);
+	private static void switchInventories(Player player, List<ItemStackWithSlot> from, List<ItemStackWithSlot> to) {
+		saveInventory(player.getInventory(), from);
+		loadInventory(player.getInventory(), to);
 	}
 
-	private static ListTag swapInventoryTag(Player player, String from, String to, ListTag inventory) {
-		CompoundTag tag = getOrCreatePersistent(player, GamemodeBuild.MODID);
-		ListTag newInventory = tag.getList(to, Tag.TAG_COMPOUND);
-		tag.remove(to);
-		tag.put(from, inventory);
-		return newInventory;
+	public static void saveInventory(Inventory inventory, List<ItemStackWithSlot> items) {
+		NonNullList<ItemStack> nonEquipmentItems = inventory.getNonEquipmentItems();
+		List<ItemStackWithSlot> nonEquipmentItemsWithSlot = new ArrayList<>();
+		for (int i = 0; i < nonEquipmentItems.size(); i++) {
+			ItemStack nonEquipmentItem = nonEquipmentItems.get(i);
+			if (!nonEquipmentItem.isEmpty()) {
+				nonEquipmentItemsWithSlot.add(new ItemStackWithSlot(i, nonEquipmentItem));
+			}
+		}
+		items.clear();
+		items.addAll(nonEquipmentItemsWithSlot);
 	}
 
-	private static void loadInventory(Inventory inventory, ListTag tag) {
-		List<ItemStack> armor = List.copyOf(inventory.armor);
-		inventory.clearContent();
-		inventory.load(tag);
-		for (int i = 0; i < armor.size(); i++) {
-			inventory.armor.set(i, armor.get(i));
+	private static void loadInventory(Inventory inventory, List<ItemStackWithSlot> items) {
+		inventory.getNonEquipmentItems().clear();
+
+		// Keeping equipment items is fine, but don't allow them to keep them if they are from build mode.
+		EntityEquipment equipment = ((InventoryAccessor) inventory).getEquipment();
+		for (EquipmentSlot slot : Inventory.EQUIPMENT_SLOT_MAPPING.values()) {
+			ItemStack itemStack = equipment.get(slot);
+			if (GBStackMarker.isMarked(itemStack)) {
+				equipment.set(slot, ItemStack.EMPTY);
+			}
+		}
+
+		for (ItemStackWithSlot item : items) {
+            if (!item.stack().isEmpty()) {
+                inventory.setItem(item.slot(), item.stack());
+            }
+        }
+	}
+
+	private static GBPlayerAttachment getOrCreateData(Player player) {
+		if (player.hasData(GamemodeBuild.PLAYER_ATTACHMENT.value())) {
+			return player.getData(GamemodeBuild.PLAYER_ATTACHMENT.value());
+		} else {
+			GBPlayerAttachment attachment = new GBPlayerAttachment();
+			player.setData(GamemodeBuild.PLAYER_ATTACHMENT.value(), attachment);
+			return attachment;
 		}
 	}
 
-	private static CompoundTag getOrCreatePersistent(Player player, String key) {
-		CompoundTag nbt = player.getPersistentData();
-		CompoundTag persisted = getOrCreateCompound(nbt, Player.PERSISTED_NBT_TAG);
-		return getOrCreateCompound(persisted, key);
-	}
+	public static class GBPlayerAttachment {
 
-	private static CompoundTag getOrCreateCompound(CompoundTag root, String key) {
-		if (root.contains(key, Tag.TAG_COMPOUND)) {
-			return root.getCompound(key);
+		private boolean active;
+		private boolean enabled;
+		private String list;
+		private final List<ItemStackWithSlot> playerInventory;
+		private final List<ItemStackWithSlot> buildInventory;
+
+		public static final MapCodec<GBPlayerAttachment> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+				Codec.BOOL.fieldOf("active").forGetter(gbData -> gbData.active),
+				Codec.BOOL.fieldOf("enabled").forGetter(gbData -> gbData.enabled),
+				Codec.STRING.fieldOf("list").forGetter(gbData -> gbData.list),
+				ItemStackWithSlot.CODEC.listOf().fieldOf("playerinv").forGetter(gbData -> gbData.playerInventory),
+				ItemStackWithSlot.CODEC.listOf().fieldOf("buildinv").forGetter(gbPlayerAttachment -> gbPlayerAttachment.buildInventory)
+		).apply(instance, GBPlayerAttachment::new));
+
+		public GBPlayerAttachment() {
+			this.active = false;
+			this.enabled = GBConfigs.SERVER.playerDefaultEnabled();
+			this.list = "default";
+			this.playerInventory = new ArrayList<>();
+			this.buildInventory = new ArrayList<>();
 		}
 
-		CompoundTag compound = new CompoundTag();
-		root.put(key, compound);
-		return compound;
+		public GBPlayerAttachment(boolean active, boolean enabled, String list, List<ItemStackWithSlot> playerInventory, List<ItemStackWithSlot> buildInventory) {
+			this.active = active;
+			this.enabled = enabled;
+			this.list = list;
+			this.playerInventory = new ArrayList<>(playerInventory);
+			this.buildInventory = new ArrayList<>(buildInventory);
+		}
 	}
 }

@@ -3,7 +3,9 @@
   "package": "com.lovetropics.gamemodebuild.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "PlayerMixin"
+    "InventoryAccessor",
+    "PlayerMixin",
+    "ServerGamePacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1

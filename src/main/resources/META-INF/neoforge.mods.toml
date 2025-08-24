@@ -16,14 +16,14 @@ Creative mode without creative. Great for collaborative public building.
 [[dependencies.gamemodebuild]]
     modId="neoforge"
     type="required"
-    versionRange="[21.0.0,)"
+    versionRange="[21.7.0,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.gamemodebuild]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21,)"
+    versionRange="[1.21.7,)"
     ordering="NONE"
     side="BOTH"
 
