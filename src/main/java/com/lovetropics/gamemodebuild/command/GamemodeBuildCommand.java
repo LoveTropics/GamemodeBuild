@@ -20,6 +20,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
@@ -48,13 +49,13 @@ public final class GamemodeBuildCommand {
 	}
 
 	// @formatter:off
-	private static LiteralArgumentBuilder<CommandSourceStack> enable(boolean enable) {
-		return literal(enable ? "enable" : "disable")
-			.requires(src -> src.hasPermission(4))
-			.executes(ctx -> enable(ctx, null, enable))
+	private static LiteralArgumentBuilder<CommandSourceStack> enable(String name, boolean enable, boolean activate) {
+		return literal(name)
+			.requires(src -> src.hasPermission(Commands.LEVEL_OWNERS))
+			.executes(ctx -> enable(ctx, null, enable, activate))
 			.then(
 				getPlayerArg()
-				.executes(ctx -> enable(ctx, EntityArgument.getPlayers(ctx, "player"), enable))
+				.executes(ctx -> enable(ctx, EntityArgument.getPlayers(ctx, "player"), enable, activate))
 			);
 	}
 
@@ -85,10 +86,11 @@ public final class GamemodeBuildCommand {
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext buildContext) {
 		dispatcher.register(
-			literal("build").requires(src -> src.hasPermission(4))
-				.then(enable(true))
-				.then(enable(false))
-				.then(literal("whitelist")
+			literal("build").requires(src -> src.hasPermission(Commands.LEVEL_OWNERS))
+				.then(enable("enable", true, false))
+				.then(enable("disable", false, false))
+                .then(enable("enableAndActivate", true, true))
+                .then(literal("whitelist")
 						.then(listCommands(true, buildContext)))
 				.then(literal("blacklist")
 						.then(listCommands(false, buildContext)))
@@ -102,7 +104,7 @@ public final class GamemodeBuildCommand {
 	}
 	// @formatter:on
 	
-	private static int enable(CommandContext<CommandSourceStack> ctx, @Nullable Collection<ServerPlayer> players, boolean state) throws CommandSyntaxException {
+	private static int enable(CommandContext<CommandSourceStack> ctx, @Nullable Collection<ServerPlayer> players, boolean state, boolean activate) throws CommandSyntaxException {
 		CommandSourceStack src = ctx.getSource();
 		MinecraftServer server = src.getServer();
 
@@ -116,7 +118,12 @@ public final class GamemodeBuildCommand {
 			return Command.SINGLE_SUCCESS;
 		}
 
-		players.forEach(p -> GBServerState.setEnabledFor(p, state));
+		players.forEach(p -> {
+            GBServerState.setEnabledFor(p, state);
+            if (activate) {
+                GBServerState.setActiveFor(p, true);
+            }
+        });
 
 		src.sendSuccess(() -> Component.literal((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
 		if (state && !GBServerState.isGloballyEnabled()) {
