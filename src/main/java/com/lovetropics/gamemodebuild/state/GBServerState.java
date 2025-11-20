@@ -49,10 +49,14 @@ public final class GBServerState {
 			notifyDisabled(player);
 			return;
 		}
-		boolean wasActive = isActiveFor(player);
-		GBPlayerStore.setActive(player, active);
-		notifyPlayerActivity(wasActive, player);
+        setActiveFor(player, active);
 	}
+
+    public static void setActiveFor(ServerPlayer player, boolean active) {
+        boolean wasActive = isActiveFor(player);
+        GBPlayerStore.setActive(player, active);
+        notifyPlayerActivity(wasActive, player);
+    }
 
 	public static boolean isActiveFor(Player player) {
 		return isEnabledFor(player) && GBPlayerStore.isActive(player);
