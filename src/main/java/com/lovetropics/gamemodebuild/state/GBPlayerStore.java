@@ -64,7 +64,7 @@ public final class GBPlayerStore {
 		for (int i = 0; i < nonEquipmentItems.size(); i++) {
 			ItemStack nonEquipmentItem = nonEquipmentItems.get(i);
 			if (!nonEquipmentItem.isEmpty()) {
-				nonEquipmentItemsWithSlot.add(new ItemStackWithSlot(i, nonEquipmentItem));
+				nonEquipmentItemsWithSlot.add(new ItemStackWithSlot(i, nonEquipmentItem.copy()));
 			}
 		}
 		items.clear();
@@ -85,7 +85,7 @@ public final class GBPlayerStore {
 
 		for (ItemStackWithSlot item : items) {
             if (!item.stack().isEmpty()) {
-                inventory.setItem(item.slot(), item.stack());
+                inventory.setItem(item.slot(), item.stack().copy());
             }
         }
 	}
