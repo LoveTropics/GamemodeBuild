@@ -25,6 +25,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -78,6 +79,11 @@ public class GamemodeBuild {
 	public void registerCommands(RegisterCommandsEvent event) {
 		GamemodeBuildCommand.register(event.getDispatcher(), event.getBuildContext());
 	}
+
+    @SubscribeEvent
+    public void onTagsUpdated(TagsUpdatedEvent event) {
+        GBConfigs.SERVER.resetFilter();
+    }
 
 	@SubscribeEvent
 	public void onBreakSpeed(final PlayerEvent.BreakSpeed event) {
