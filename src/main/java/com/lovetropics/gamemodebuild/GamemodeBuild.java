@@ -60,7 +60,7 @@ public class GamemodeBuild {
 		GBCommandSelectors.init();
 	}
 
-	public static Identifier rl(String path) {
+	public static Identifier id(String path) {
 		return Identifier.fromNamespaceAndPath(MODID, path);
 	}
 

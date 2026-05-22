@@ -17,7 +17,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 
-@EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(Dist.CLIENT)
 public final class PlayerInventoryHooks {
 	@SubscribeEvent
 	public static void onOpenScreen(ScreenEvent.Opening event) {

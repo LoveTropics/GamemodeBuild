@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-@EventBusSubscriber(modid = GamemodeBuild.MODID)
+@EventBusSubscriber
 public class GBConfigs {
 
 	public static class ItemList {

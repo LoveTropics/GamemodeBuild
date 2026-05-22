@@ -13,9 +13,9 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
-@EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(Dist.CLIENT)
 public class GBKeyBindings {
-	public static final KeyMapping.Category BUILD_MODE = new KeyMapping.Category(GamemodeBuild.rl("build_mode"));
+	public static final KeyMapping.Category BUILD_MODE = new KeyMapping.Category(GamemodeBuild.id("build_mode"));
 	public static final KeyMapping SWITCH_MODE = new KeyMapping("Enable/Disable Build Mode", InputConstants.KEY_B, BUILD_MODE);
 
 	@SubscribeEvent

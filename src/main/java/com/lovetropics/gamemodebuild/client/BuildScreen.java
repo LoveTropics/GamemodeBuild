@@ -24,7 +24,7 @@ import java.util.Locale;
 
 public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 
-	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(GamemodeBuild.MODID, "textures/gui/menu.png");
+	private static final Identifier TEXTURE = GamemodeBuild.id("textures/gui/menu.png");
 
 	private static final Identifier TABS = Identifier.withDefaultNamespace("textures/gui/container/creative_inventory/tab_items.png");
 	private static final Identifier SCROLLER = Identifier.withDefaultNamespace("container/creative_inventory/scroller");

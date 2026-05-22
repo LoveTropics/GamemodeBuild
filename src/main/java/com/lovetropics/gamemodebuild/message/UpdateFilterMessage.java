@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.BitSet;
 
 public record UpdateFilterMessage(BitSet filter) implements CustomPacketPayload {
-	public static final Type<UpdateFilterMessage> TYPE = new Type<>(GamemodeBuild.rl("update_filter"));
+	public static final Type<UpdateFilterMessage> TYPE = new Type<>(GamemodeBuild.id("update_filter"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, UpdateFilterMessage> CODEC = ByteBufCodecs.byteArray(Integer.MAX_VALUE)
 			.map(BitSet::valueOf, BitSet::toByteArray).map(UpdateFilterMessage::new, UpdateFilterMessage::filter).cast();
 
