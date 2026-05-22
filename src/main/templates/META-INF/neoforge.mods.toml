@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion = "${loader_version_range}"
+issueTrackerURL="https://github.com/LoveTropics/GamemodeBuild/issues"
+license="Mozilla Public License Version 2.0"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "Gamemode Build"
+displayURL = "https://lovetropics.org"
+authors = "The Love Tropics Team"
+description='''
+Creative mode without creative. Great for collaborative public building.
+'''
+
+[[dependencies.${ mod_id }]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config="gamemodebuild.mixins.json"

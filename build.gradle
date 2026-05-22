@@ -52,30 +52,24 @@ neoForge {
     }
 }
 
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                "Specification-Title": "gamemodebuild",
-                "Specification-Vendor": "lovetropics",
-                "Specification-Version": "1",
-                "Implementation-Title": project.name,
-                "Implementation-Version": archiveVersion,
-                "Implementation-Vendor" :"lovetropics",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-        ])
-    }
-}
-
-tasks.named('processResources', ProcessResources).configure {
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
-            mod_version: mod_version,
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_version            : mod_version,
     ]
     inputs.properties replaceProperties
-
-    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
-    }
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
 }
+sourceSets.main.resources.srcDir generateModMetadata
+
+neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
