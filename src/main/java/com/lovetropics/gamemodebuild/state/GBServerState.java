@@ -69,16 +69,16 @@ public final class GBServerState {
         }
         GBPlayerStore.switchToInventory(player, state);
         if (state) {
-            player.displayClientMessage(Component.literal(GamemodeBuild.NAME + " activated"), true);
+            player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " activated"), true);
         } else {
-            player.displayClientMessage(Component.literal(GamemodeBuild.NAME + " deactivated"), true);
+            player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " deactivated"), true);
         }
         sendPlayerState(player);
 		player.closeContainer();
     }
 
 	public static void notifyDisabled(ServerPlayer player) {
-		player.displayClientMessage(Component.literal(GamemodeBuild.NAME + " is disabled!"), true);
+		player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " is disabled!"), true);
 	}
 
 	public static void sendPlayerState(ServerPlayer player) {

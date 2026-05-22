@@ -51,7 +51,7 @@ public final class GamemodeBuildCommand {
 	// @formatter:off
 	private static LiteralArgumentBuilder<CommandSourceStack> enable(String name, boolean enable, boolean activate) {
 		return literal(name)
-			.requires(src -> src.hasPermission(Commands.LEVEL_OWNERS))
+			.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 			.executes(ctx -> enable(ctx, null, enable, activate))
 			.then(
 				getPlayerArg()
@@ -86,7 +86,7 @@ public final class GamemodeBuildCommand {
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext buildContext) {
 		dispatcher.register(
-			literal("build").requires(src -> src.hasPermission(Commands.LEVEL_OWNERS))
+			literal("build").requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
 				.then(enable("enable", true, false))
 				.then(enable("disable", false, false))
                 .then(enable("enableAndActivate", true, true))

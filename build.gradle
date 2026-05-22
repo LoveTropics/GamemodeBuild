@@ -1,41 +1,29 @@
 plugins {
-    id 'java-library'
     id 'eclipse'
     id 'idea'
+    id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.99'
+    id 'net.neoforged.moddev' version '2.0.141'
 }
 
-ext.buildnumber = 0
-
-if (System.getenv('GITHUB_RUN_NUMBER')) {
-    project.buildnumber = System.getenv('GITHUB_RUN_NUMBER')
-    version = "${mod_version}+${buildnumber}-gha"
-} else {
-    version = "${mod_version}"
-}
-
-group = 'com.lovetropics.gamemodebuild'
+group = 'org.lovetropics'
 base {
     archivesName = 'GamemodeBuild'
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+def env = System.getenv()
+
+if (env.GITHUB_RUN_NUMBER) {
+    version = "$mod_version.${env.GITHUB_RUN_NUMBER}"
+} else {
+    version = "$mod_version.0-SNAPSHOT"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     version = project.neo_version
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-	
-	mods {
-		gamemodebuild {
-			sourceSet sourceSets.main
-		}
-	}
-    
     runs {
         client {
         	client()
@@ -47,11 +35,19 @@ neoForge {
 
         data {
             clientData()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
 
-            systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            systemProperty 'forge.logging.console.level', 'debug'
+        configureEach {
+            logLevel = org.slf4j.event.Level.INFO
+            ideName = project.name + " - " + ideName.get()
+        }
+    }
 
-            programArguments.addAll '--mod', 'gamemodebuild', '--all', '--output', file('src/generated/resources/').absolutePath
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.test
         }
     }
 }

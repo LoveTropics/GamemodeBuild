@@ -10,11 +10,13 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 @EventBusSubscriber(value = Dist.CLIENT)
 public class GBKeyBindings {
-	public static final KeyMapping SWITCH_MODE = new KeyMapping("Enable/Disable Build Mode", InputConstants.KEY_B, "Build Mode");
+	public static final KeyMapping.Category BUILD_MODE = new KeyMapping.Category(GamemodeBuild.rl("build_mode"));
+	public static final KeyMapping SWITCH_MODE = new KeyMapping("Enable/Disable Build Mode", InputConstants.KEY_B, BUILD_MODE);
 
 	@SubscribeEvent
 	public static void onKeyInput(ClientTickEvent.Post event) {
@@ -26,5 +28,11 @@ public class GBKeyBindings {
 				ClientPacketDistributor.sendToServer(new SetActiveMessage(active));
 			}
 		}
+	}
+
+	@SubscribeEvent
+	public static void onRegisterEvent(RegisterKeyMappingsEvent event) {
+		event.registerCategory(BUILD_MODE);
+		event.register(SWITCH_MODE);
 	}
 }
