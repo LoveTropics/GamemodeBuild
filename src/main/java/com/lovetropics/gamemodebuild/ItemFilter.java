@@ -1,15 +1,15 @@
 package com.lovetropics.gamemodebuild;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
-import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.SingleKeyCache;
+import net.minecraft.util.Util;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -56,10 +56,10 @@ public class ItemFilter {
 		if ("*".equals(predicate)) {
 			return item -> true;
 		} else if (predicate.startsWith("#")) {
-			final ResourceLocation tagLocation = ResourceLocation.parse(predicate.substring(1));
+			final Identifier tagLocation = Identifier.parse(predicate.substring(1));
 			return new TagFilter(TagKey.create(Registries.ITEM, tagLocation));
 		} else {
-			final ResourceLocation location = ResourceLocation.parse(predicate);
+			final Identifier location = Identifier.parse(predicate);
 			return new ItemTypeFilter(ResourceKey.create(Registries.ITEM, location));
 		}
 	}

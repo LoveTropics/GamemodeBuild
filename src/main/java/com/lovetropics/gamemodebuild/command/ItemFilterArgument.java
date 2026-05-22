@@ -16,7 +16,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
@@ -54,7 +54,7 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 
 		if (reader.canRead(1) && reader.peek() == '#') {
 			reader.skip();
-			ResourceLocation tagId = ResourceLocation.read(reader);
+			Identifier tagId = Identifier.read(reader);
 			var tag = items.get(TagKey.create(Registries.ITEM, tagId));
 			if (tag.isEmpty()) {
 				throw UNKNOWN_TAG.create(tagId);
@@ -86,7 +86,7 @@ public class ItemFilterArgument implements ArgumentType<ItemFilterArgument.Resul
 	public record ItemResult(Holder<Item> item) implements Result {
 		@Override
 		public String asString() {
-			return item.unwrapKey().map(key -> key.location().toString()).orElseThrow();
+			return item.unwrapKey().map(key -> key.identifier().toString()).orElseThrow();
 		}
 	}
 

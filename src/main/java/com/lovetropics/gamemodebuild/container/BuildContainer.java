@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -221,7 +221,7 @@ public class BuildContainer extends AbstractContainerMenu {
 		if (this.scrollOffset != scrollOffset) {
 			this.scrollOffset = scrollOffset;
 			
-			if (this.player.level().isClientSide) {
+			if (this.player.level().isClientSide()) {
 				ClientPacketDistributor.sendToServer(new SetScrollMessage(scrollOffset));
 			}
 			
@@ -267,17 +267,17 @@ public class BuildContainer extends AbstractContainerMenu {
 	public boolean stillValid(Player player) {
 		return GamemodeBuild.isActive(player);
 	}
-	
+
 	@Override
-	public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
+	public void clicked(int slotId, int dragType, ContainerInput containerInput, Player player) {
 		if (slotId < 0 || slotId >= HEIGHT * WIDTH) {
 			// This is not an infinite slot, we don't need to do anything special
-			super.clicked(slotId, dragType, clickTypeIn, player);
+			super.clicked(slotId, dragType, containerInput, player);
 			return;
 		}
-		this.takeStacks = clickTypeIn == ClickType.SWAP;
+		this.takeStacks = containerInput == ContainerInput.SWAP;
 		ItemStack oldCursor = getCarried().copy();
-		if ((clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.PICKUP_ALL) && ItemStack.isSameItemSameComponents(getSlot(slotId).getItem(), oldCursor)) {
+		if ((containerInput == ContainerInput.PICKUP || containerInput == ContainerInput.PICKUP_ALL) && ItemStack.isSameItemSameComponents(getSlot(slotId).getItem(), oldCursor)) {
 			// Allow pulling single items into an existing stack
 			ItemStack ret = oldCursor.copy();
 			if (ret.getCount() < ret.getMaxStackSize()) {
@@ -286,7 +286,7 @@ public class BuildContainer extends AbstractContainerMenu {
 			setCarried(ret);
 			return;
 		}
-		super.clicked(slotId, dragType, clickTypeIn, player);
+		super.clicked(slotId, dragType, containerInput, player);
 		ItemStack newCursor = getCarried();
 		if (!oldCursor.isEmpty() && GBStackMarker.isMarked(oldCursor) && GBStackMarker.isMarked(newCursor)) {
 			if (!ItemStack.isSameItemSameComponents(oldCursor, newCursor)) {

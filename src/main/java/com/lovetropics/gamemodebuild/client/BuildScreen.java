@@ -5,12 +5,15 @@ import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.message.UpdateFilterMessage;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.CommonColors;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,10 +24,10 @@ import java.util.Locale;
 
 public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(GamemodeBuild.MODID, "textures/gui/menu.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(GamemodeBuild.MODID, "textures/gui/menu.png");
 
-	private static final ResourceLocation TABS = ResourceLocation.withDefaultNamespace("textures/gui/container/creative_inventory/tab_items.png");
-	private static final ResourceLocation SCROLLER = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller");
+	private static final Identifier TABS = Identifier.withDefaultNamespace("textures/gui/container/creative_inventory/tab_items.png");
+	private static final Identifier SCROLLER = Identifier.withDefaultNamespace("container/creative_inventory/scroller");
 
 	private EditBox searchField;
 
@@ -34,9 +37,7 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	private String lastSearchFilter = "";
 
 	public BuildScreen(final BuildContainer screenContainer, final Inventory inv, final Component titleIn) {
-		super(screenContainer, inv, titleIn);
-		imageWidth = 195;
-		imageHeight = 136;
+		super(screenContainer, inv, titleIn, 195, 136);
 	}
 
 	@Override
@@ -58,13 +59,13 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	}
 
 	@Override
-	public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-		if (searchField.keyPressed(keyCode, scanCode, modifiers)) {
+	public boolean keyPressed(KeyEvent event) {
+		if (searchField.keyPressed(event)) {
 			return true;
-		} else if (searchField.isFocused() && searchField.isVisible() && keyCode != InputConstants.KEY_ESCAPE) {
+		} else if (searchField.isFocused() && searchField.isVisible() && event.key() != InputConstants.KEY_ESCAPE) {
 			return true;
 		}
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		return super.keyPressed(event);
 	}
 
 	private void updateSearch(final String searchFilter) {
@@ -75,25 +76,20 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	}
 
 	@Override
-	public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-		renderBackground(graphics, mouseX, mouseY, partialTicks);
-		super.render(graphics, mouseX, mouseY, partialTicks);
-		renderTooltip(graphics, mouseX, mouseY);
-	}
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+		super.extractBackground(graphics, mouseX, mouseY, a);
 
-	@Override
-	protected void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
-		graphics.drawString(font, title, 8, 6, 0x404040, false);
-	}
-
-	@Override
-	protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
 
 		if (menu.canScroll()) {
 			final Rect2i rect = scrollRect();
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, rect.left, rect.top, rect.width, rect.height);
 		}
+	}
+
+	@Override
+	protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
+		graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, -12566464, false);
 	}
 
 	@Override
@@ -107,35 +103,35 @@ public class BuildScreen extends AbstractContainerScreen<BuildContainer> {
 	}
 
 	@Override
-	public boolean mouseClicked(final double x, final double y, final int button) {
-		if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 			final Rect2i rect = scrollRect();
-			if (rect.contains(x, y)) {
+			if (rect.contains(event.x(), event.y())) {
 				draggingScroll = true;
 				return true;
 			}
 		}
-		return super.mouseClicked(x, y, button);
+		return super.mouseClicked(event, doubleClick);
 	}
 
 	@Override
-	public boolean mouseReleased(final double x, final double y, final int button) {
+	public boolean mouseReleased(MouseButtonEvent event) {
 		if (draggingScroll) {
 			draggingScroll = false;
 			return true;
 		}
-		return super.mouseReleased(x, y, button);
+		return super.mouseReleased(event);
 	}
 
 	@Override
-	public boolean mouseDragged(final double x, final double y, final int button, final double deltaX, final double deltaY) {
+	public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
 		if (draggingScroll) {
 			final Rect2i area = scrollArea();
 			final Rect2i rect = scrollRect();
-			updateScroll((float) (y - area.top - rect.height / 2.0F) / (area.height - rect.height));
+			updateScroll((float) (event.y() - area.top - rect.height / 2.0F) / (area.height - rect.height));
 			return true;
 		}
-		return super.mouseDragged(x, y, button, deltaX, deltaY);
+		return super.mouseDragged(event, dx, dy);
 	}
 
 	private void updateScroll(final float amount) {
