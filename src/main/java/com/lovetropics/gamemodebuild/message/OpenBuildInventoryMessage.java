@@ -11,7 +11,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record OpenBuildInventoryMessage() implements CustomPacketPayload {
-    public static final Type<OpenBuildInventoryMessage> TYPE = new Type<>(GamemodeBuild.rl("open_build_inventory"));
+    public static final Type<OpenBuildInventoryMessage> TYPE = new Type<>(GamemodeBuild.id("open_build_inventory"));
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenBuildInventoryMessage> CODEC = StreamCodec.unit(new OpenBuildInventoryMessage());
 
     public void handle(IPayloadContext ctx) {

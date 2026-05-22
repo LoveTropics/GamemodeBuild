@@ -12,7 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record SetActiveMessage(boolean active) implements CustomPacketPayload {
-    public static final Type<SetActiveMessage> TYPE = new Type<>(GamemodeBuild.rl("set_active"));
+    public static final Type<SetActiveMessage> TYPE = new Type<>(GamemodeBuild.id("set_active"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SetActiveMessage> CODEC = ByteBufCodecs.BOOL
             .map(SetActiveMessage::new, SetActiveMessage::active).cast();
 

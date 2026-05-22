@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record SetScrollMessage(int scrollOffset) implements CustomPacketPayload {
-	public static final Type<SetScrollMessage> TYPE = new Type<>(GamemodeBuild.rl("set_scroll"));
+	public static final Type<SetScrollMessage> TYPE = new Type<>(GamemodeBuild.id("set_scroll"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SetScrollMessage> CODEC = ByteBufCodecs.VAR_INT
 			.map(SetScrollMessage::new, SetScrollMessage::scrollOffset).cast();
 

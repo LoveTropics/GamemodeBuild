@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.Optional;
 
 public record ListUpdateMessage(Operation operation, boolean whitelist, String name, Optional<String> entry) implements CustomPacketPayload {
-	public static final Type<ListUpdateMessage> TYPE = new Type<>(GamemodeBuild.rl("update_list"));
+	public static final Type<ListUpdateMessage> TYPE = new Type<>(GamemodeBuild.id("update_list"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ListUpdateMessage> CODEC = StreamCodec.composite(
 			ByteBufCodecs.idMapper(i -> Operation.values()[i], Operation::ordinal), ListUpdateMessage::operation,
 			ByteBufCodecs.BOOL, ListUpdateMessage::whitelist,

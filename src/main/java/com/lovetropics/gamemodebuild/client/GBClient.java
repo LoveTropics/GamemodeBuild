@@ -13,7 +13,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 @Mod(value = GamemodeBuild.MODID, dist = Dist.CLIENT)
-@EventBusSubscriber(modid = GamemodeBuild.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(Dist.CLIENT)
 public class GBClient {
     public GBClient(IEventBus bus) {
         bus.addListener((final RegisterMenuScreensEvent event) -> {
