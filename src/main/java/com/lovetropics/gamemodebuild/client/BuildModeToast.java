@@ -18,6 +18,7 @@ import java.util.List;
 
 public final class BuildModeToast implements Toast {
 	private static final ResourceLocation BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("toast/advancement");
+	public static final int DISPLAY_TIME = 5000;
 
 	private final Component title;
 	private final Component header;
@@ -43,7 +44,7 @@ public final class BuildModeToast implements Toast {
 
 	@Override
 	public void update(ToastManager toastManager, long time) {
-		this.wantedVisibility = time >= 5000.0 * toastManager.getNotificationDisplayTimeMultiplier()
+		this.wantedVisibility = time >= DISPLAY_TIME * toastManager.getNotificationDisplayTimeMultiplier()
 				? Toast.Visibility.HIDE
 				: Toast.Visibility.SHOW;
 	}
