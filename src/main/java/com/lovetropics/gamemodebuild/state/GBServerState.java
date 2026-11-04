@@ -2,6 +2,7 @@ package com.lovetropics.gamemodebuild.state;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
+import com.lovetropics.gamemodebuild.message.BuildModeNotificationMessage;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
 import it.unimi.dsi.fastutil.objects.Reference2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
@@ -20,6 +21,7 @@ public final class GBServerState {
 		if (enabled == isGloballyEnabled()) {
 			return;
 		}
+		boolean wasGloballyEnabled = isGloballyEnabled();
 
 		Reference2BooleanMap<ServerPlayer> activeMap = new Reference2BooleanOpenHashMap<>();
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -28,12 +30,24 @@ public final class GBServerState {
 
 		GBConfigs.SERVER.enable(enabled);
         activeMap.forEach((player, wasActive) -> notifyPlayerActivity(wasActive, player));
+		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+			boolean wasEnabled = wasGloballyEnabled && GBPlayerStore.isEnabled(player);
+			notifyPlayerAvailability(wasEnabled, player);
+		}
 	}
 
 	public static void setEnabledFor(ServerPlayer player, boolean enabled) {
+		boolean wasEnabled = isEnabledFor(player);
 		boolean wasActive = isActiveFor(player);
 		GBPlayerStore.setEnabled(player, enabled);
 		notifyPlayerActivity(wasActive, player);
+		notifyPlayerAvailability(wasEnabled, player);
+	}
+
+	private static void notifyPlayerAvailability(boolean wasEnabled, ServerPlayer player) {
+		if (wasEnabled != isEnabledFor(player)) {
+			PacketDistributor.sendToPlayer(player, new BuildModeNotificationMessage(isEnabledFor(player)));
+		}
 	}
 
 	public static boolean isGloballyEnabled() {

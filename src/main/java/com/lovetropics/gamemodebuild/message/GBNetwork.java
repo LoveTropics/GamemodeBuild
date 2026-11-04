@@ -33,5 +33,9 @@ public class GBNetwork {
 				ListUpdateMessage.TYPE,
 				ListUpdateMessage.CODEC
 		);
+		registrar.playToClient(
+				BuildModeNotificationMessage.TYPE,
+				BuildModeNotificationMessage.CODEC
+		);
 	}
 }

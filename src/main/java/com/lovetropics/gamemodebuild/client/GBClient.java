@@ -2,6 +2,7 @@ package com.lovetropics.gamemodebuild.client;
 
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.container.BuildContainer;
+import com.lovetropics.gamemodebuild.message.BuildModeNotificationMessage;
 import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
 import com.lovetropics.gamemodebuild.message.SetActiveMessage;
 import net.neoforged.api.distmarker.Dist;
@@ -25,5 +26,6 @@ public class GBClient {
     public static void onPayloadHandlerRegister(RegisterClientPayloadHandlersEvent event) {
         event.register(ListUpdateMessage.TYPE, ListUpdateMessage::handle);
         event.register(SetActiveMessage.TYPE, SetActiveMessage::handle);
+		event.register(BuildModeNotificationMessage.TYPE, BuildModeNotificationMessage::handle);
     }
 }
