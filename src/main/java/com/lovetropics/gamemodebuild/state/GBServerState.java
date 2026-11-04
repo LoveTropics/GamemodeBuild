@@ -92,4 +92,12 @@ public final class GBServerState {
 			sendPlayerState(player);
 		}
 	}
+
+	@SubscribeEvent
+	public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+		// This isn't great. We're using this to detect players reloading from minigames, to ensure resetting state on the server does not cause a desync
+		if (event.getEntity() instanceof ServerPlayer player) {
+			sendPlayerState(player);
+		}
+	}
 }
