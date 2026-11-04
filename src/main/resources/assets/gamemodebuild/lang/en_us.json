@@ -1,0 +1,5 @@
+{
+  "gamemodebuild.toast.build_mode": "Build Mode",
+  "gamemodebuild.toast.build_mode.available": "Available (press %s)",
+  "gamemodebuild.toast.build_mode.unavailable": "Unavailable"
+}
