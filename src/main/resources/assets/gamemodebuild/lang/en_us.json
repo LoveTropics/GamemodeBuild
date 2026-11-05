@@ -1,5 +1,6 @@
 {
   "gamemodebuild.toast.build_mode": "Build Mode",
   "gamemodebuild.toast.build_mode.available": "Available (press %s)",
-  "gamemodebuild.toast.build_mode.unavailable": "Unavailable"
+  "gamemodebuild.toast.build_mode.unavailable": "Unavailable",
+  "gamerule.gamemodebuild.enable_build_mode": "Enable Build Mode"
 }

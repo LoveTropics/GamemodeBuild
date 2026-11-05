@@ -51,7 +51,6 @@ public class GBConfigs {
 		Map<String, ItemList> lists = new HashMap<>();
 		final ModConfigSpec.ConfigValue<String> listsConfig;
 
-		final BooleanValue enabled;
 		final BooleanValue removeBreakSpeedDebuff;
 		final BooleanValue playerDefaultEnabled;
 
@@ -71,7 +70,6 @@ public class GBConfigs {
 				return false;
 			});
 
-			enabled = builder.comment("Enable SurvivalPlus for all players").define("enabled", true);
 			removeBreakSpeedDebuff = builder.comment("If true, players will break blocks in build mode as fast as if they were not flying").define("removeBreakSpeedDebuff", true);
 			playerDefaultEnabled = builder.comment("Enable for all players by default. If false, you will need to use /build enable @s to enable for a player.").define("playerDefaultEnabled", true);
 		}
@@ -168,15 +166,6 @@ public class GBConfigs {
 
 		void resetFilter() {
 			filters.clear();
-		}
-
-		public void enable(boolean state) {
-			this.enabled.set(state);
-			this.enabled.save();
-		}
-
-		public boolean enabled() {
-			return enabled.get();
 		}
 
 		public boolean playerDefaultEnabled() {

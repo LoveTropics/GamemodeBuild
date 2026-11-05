@@ -4,7 +4,7 @@ import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.command.ItemFilterArgument.Result;
 import com.lovetropics.gamemodebuild.message.ListUpdateMessage;
-import com.lovetropics.gamemodebuild.state.GBPlayerStore;
+import com.lovetropics.gamemodebuild.state.GBPlayer;
 import com.lovetropics.gamemodebuild.state.GBServerState;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -13,7 +13,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -25,11 +24,9 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -52,7 +49,6 @@ public final class GamemodeBuildCommand {
 	private static LiteralArgumentBuilder<CommandSourceStack> enable(String name, boolean enable, boolean activate) {
 		return literal(name)
 			.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-			.executes(ctx -> enable(ctx, null, enable, activate))
 			.then(
 				getPlayerArg()
 				.executes(ctx -> enable(ctx, EntityArgument.getPlayers(ctx, "player"), enable, activate))
@@ -97,37 +93,28 @@ public final class GamemodeBuildCommand {
 				.then(literal("set_list").then(getPlayerArg().then(nameArg()
 						.executes(ctx -> {
 							Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "player");
-							players.forEach(player -> GBPlayerStore.setList(player, StringArgumentType.getString(ctx, "name")));
+							players.forEach(player -> GBPlayer.get(player).setList(StringArgumentType.getString(ctx, "name")));
 							return players.size();
 						}))))
 		);
 	}
 	// @formatter:on
 	
-	private static int enable(CommandContext<CommandSourceStack> ctx, @Nullable Collection<ServerPlayer> players, boolean state, boolean activate) throws CommandSyntaxException {
+	private static int enable(CommandContext<CommandSourceStack> ctx, Collection<ServerPlayer> players, boolean state, boolean activate) {
 		CommandSourceStack src = ctx.getSource();
-		MinecraftServer server = src.getServer();
 
-		if (players == null) {
-			if (state == GBServerState.isGloballyEnabled()) {
-				throw SAME_STATE.create(state);
-			}
-
-			GBServerState.setGloballyEnabled(server, state);
-			src.sendSuccess(() -> Component.literal((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " globally"), false);
-			return Command.SINGLE_SUCCESS;
-		}
-
-		players.forEach(p -> {
-            GBServerState.setEnabledFor(p, state);
+        for (ServerPlayer p : players) {
+			GBPlayer buildPlayer = GBPlayer.get(p);
+			buildPlayer.setEnabled(p, state);
             if (activate) {
-                GBServerState.setActiveFor(p, true);
+				buildPlayer.setActive(p, true);
             }
-        });
+        }
 
-		src.sendSuccess(() -> Component.literal((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
-		if (state && !GBServerState.isGloballyEnabled()) {
-			src.sendSuccess(() -> Component.literal("Warning: This will have no effect as " + GamemodeBuild.NAME + " is currently globally disabled!").withStyle(ChatFormatting.YELLOW), false);
+        src.sendSuccess(() -> Component.literal((state ? "Enabled" : "Disabled") + " " + GamemodeBuild.NAME + " for " + players.size() + " player(s)"), false);
+
+		if (state && players.stream().anyMatch(player -> !GBServerState.isGloballyEnabled(player.level()))) {
+			src.sendSuccess(() -> Component.literal("Warning: This will have no effect as " + GamemodeBuild.NAME + " is disabled in the dimension!").withStyle(ChatFormatting.YELLOW), false);
 		}
 
 		return players.size();

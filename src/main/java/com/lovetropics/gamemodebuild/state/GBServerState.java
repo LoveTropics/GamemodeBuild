@@ -1,109 +1,42 @@
 package com.lovetropics.gamemodebuild.state;
 
-import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
-import com.lovetropics.gamemodebuild.message.BuildModeNotificationMessage;
-import com.lovetropics.gamemodebuild.message.SetActiveMessage;
-import it.unimi.dsi.fastutil.objects.Reference2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.event.level.GameRuleChangedEvent;
 
 @EventBusSubscriber
 public final class GBServerState {
-	public static void setGloballyEnabled(MinecraftServer server, boolean enabled) {
-		if (enabled == isGloballyEnabled()) {
-			return;
-		}
-		boolean wasGloballyEnabled = isGloballyEnabled();
-
-		Reference2BooleanMap<ServerPlayer> activeMap = new Reference2BooleanOpenHashMap<>();
-		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			activeMap.put(player, isActiveFor(player));
-		}
-
-		GBConfigs.SERVER.enable(enabled);
-        activeMap.forEach((player, wasActive) -> notifyPlayerActivity(wasActive, player));
-		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			boolean wasEnabled = wasGloballyEnabled && GBPlayerStore.isEnabled(player);
-			notifyPlayerAvailability(wasEnabled, player);
+	@SubscribeEvent
+	public static void onGameRuleChanged(GameRuleChangedEvent event) {
+		if (event.getGameRule() == GamemodeBuild.ENABLE_BUILD_MODE.get()) {
+			for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+				GBPlayer.get(player).refreshState(player, false);
+			}
 		}
 	}
 
-	public static void setEnabledFor(ServerPlayer player, boolean enabled) {
-		boolean wasEnabled = isEnabledFor(player);
-		boolean wasActive = isActiveFor(player);
-		GBPlayerStore.setEnabled(player, enabled);
-		notifyPlayerActivity(wasActive, player);
-		notifyPlayerAvailability(wasEnabled, player);
+	public static boolean isGloballyEnabled(ServerLevel level) {
+		return level.getGameRules().get(GamemodeBuild.ENABLE_BUILD_MODE.get());
 	}
 
-	private static void notifyPlayerAvailability(boolean wasEnabled, ServerPlayer player) {
-		if (wasEnabled != isEnabledFor(player)) {
-			PacketDistributor.sendToPlayer(player, new BuildModeNotificationMessage(isEnabledFor(player)));
-		}
-	}
-
-	public static boolean isGloballyEnabled() {
-		return GBConfigs.SERVER.enabled();
-	}
-	
-	public static boolean isEnabledFor(Player player) {
-		return isGloballyEnabled() && GBPlayerStore.isEnabled(player);
-	}
-	
 	public static void requestActive(ServerPlayer player, boolean active) {
-		if (!isEnabledFor(player)) {
-			notifyDisabled(player);
+		GBPlayer buildPlayer = GBPlayer.get(player);
+		if (!buildPlayer.isEffectivelyEnabled()) {
+			player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " is disabled!"), true);
 			return;
 		}
-        setActiveFor(player, active);
-	}
-
-    public static void setActiveFor(ServerPlayer player, boolean active) {
-        boolean wasActive = isActiveFor(player);
-        GBPlayerStore.setActive(player, active);
-        notifyPlayerActivity(wasActive, player);
-    }
-
-	public static boolean isActiveFor(Player player) {
-		return isEnabledFor(player) && GBPlayerStore.isActive(player);
-	}
-
-	private static void notifyPlayerActivity(boolean prevState, ServerPlayer player) {
-		boolean state = isActiveFor(player);
-        if (prevState == state) {
-            return;
-        }
-        GBPlayerStore.switchToInventory(player, state);
-        if (state) {
-            player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " activated"), true);
-        } else {
-            player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " deactivated"), true);
-        }
-        sendPlayerState(player);
-		player.closeContainer();
-    }
-
-	public static void notifyDisabled(ServerPlayer player) {
-		player.sendSystemMessage(Component.literal(GamemodeBuild.NAME + " is disabled!"), true);
-	}
-
-	public static void sendPlayerState(ServerPlayer player) {
-		SetActiveMessage message = new SetActiveMessage(isActiveFor(player));
-		PacketDistributor.sendToPlayer(player, message);
+		buildPlayer.setActive(player, active);
 	}
 
 	@SubscribeEvent
 	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getEntity() instanceof ServerPlayer player) {
-			sendPlayerState(player);
+			GBPlayer.get(player).refreshState(player, true);
 		}
 	}
 
@@ -111,7 +44,7 @@ public final class GBServerState {
 	public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
 		// This isn't great. We're using this to detect players reloading from minigames, to ensure resetting state on the server does not cause a desync
 		if (event.getEntity() instanceof ServerPlayer player) {
-			sendPlayerState(player);
+			GBPlayer.get(player).refreshState(player, true);
 		}
 	}
 }

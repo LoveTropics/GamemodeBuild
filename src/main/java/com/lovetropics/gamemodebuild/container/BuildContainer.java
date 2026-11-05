@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.GamemodeBuild;
 import com.lovetropics.gamemodebuild.message.SetScrollMessage;
-import com.lovetropics.gamemodebuild.state.GBPlayerStore;
+import com.lovetropics.gamemodebuild.state.GBPlayer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -186,7 +186,7 @@ public class BuildContainer extends AbstractContainerMenu {
 
 	// Server container
 	public BuildContainer(int windowId, Inventory playerInventory, Player player) {
-		this(windowId, playerInventory, player, GBPlayerStore.getList(player));
+		this(windowId, playerInventory, player, GBPlayer.get(player).getList());
 	}
 
 	// Client container

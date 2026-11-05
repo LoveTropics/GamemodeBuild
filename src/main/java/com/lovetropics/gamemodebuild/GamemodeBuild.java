@@ -7,8 +7,9 @@ import com.lovetropics.gamemodebuild.container.BuildContainer;
 import com.lovetropics.gamemodebuild.container.GBStackMarker;
 import com.lovetropics.gamemodebuild.message.GBNetwork;
 import com.lovetropics.gamemodebuild.state.GBClientState;
-import com.lovetropics.gamemodebuild.state.GBPlayerStore;
-import com.lovetropics.gamemodebuild.state.GBServerState;
+import com.lovetropics.gamemodebuild.state.GBPlayer;
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.serialization.Codec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
@@ -16,6 +17,11 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRuleCategory;
+import net.minecraft.world.level.gamerules.GameRuleType;
+import net.minecraft.world.level.gamerules.GameRuleTypeVisitor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -40,10 +46,13 @@ public class GamemodeBuild {
 
 	private static final DeferredRegister<ArgumentTypeInfo<?, ?>> ARGUMENT_REGISTER = DeferredRegister.create(Registries.COMMAND_ARGUMENT_TYPE, MODID);
 	private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MODID);
+	private static final DeferredRegister<GameRule<?>> GAME_RULES_REGISTER = DeferredRegister.create(Registries.GAME_RULE, MODID);
 
 	private static final Holder<ArgumentTypeInfo<?, ?>> ITEM_FILTER_ARGUMENT = ARGUMENT_REGISTER.register("item_filter", () -> ArgumentTypeInfos.registerByClass(ItemFilterArgument.class, SingletonArgumentInfo.contextAware(ItemFilterArgument::new)));
 
-	public static final DeferredHolder<AttachmentType<?>, AttachmentType<GBPlayerStore.GBPlayerAttachment>> PLAYER_ATTACHMENT = ATTACHMENT_TYPES.register("data", () -> AttachmentType.builder(GBPlayerStore.GBPlayerAttachment::new).serialize(GBPlayerStore.GBPlayerAttachment.CODEC).copyOnDeath().build());
+	public static final DeferredHolder<GameRule<?>, GameRule<Boolean>> ENABLE_BUILD_MODE = registerBoolean("enable_build_mode", GameRuleCategory.PLAYER, false);
+
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<GBPlayer>> PLAYER_ATTACHMENT = ATTACHMENT_TYPES.register("data", () -> AttachmentType.builder(GBPlayer::new).serialize(GBPlayer.CODEC).copyOnDeath().build());
 
 	public GamemodeBuild(IEventBus modBus, ModContainer container) {
 		modBus.addListener(GBNetwork::register);
@@ -51,6 +60,7 @@ public class GamemodeBuild {
 		ATTACHMENT_TYPES.register(modBus);
 		BuildContainer.REGISTER.register(modBus);
 		GBStackMarker.TYPES.register(modBus);
+		GAME_RULES_REGISTER.register(modBus);
 
 		// Register ourselves for server and other game events we are interested in
 		NeoForge.EVENT_BUS.register(this);
@@ -62,6 +72,10 @@ public class GamemodeBuild {
 
 	public static Identifier id(String path) {
 		return Identifier.fromNamespaceAndPath(MODID, path);
+	}
+
+	private static DeferredHolder<GameRule<?>, GameRule<Boolean>> registerBoolean(String id, GameRuleCategory category, boolean defaultValue) {
+		return GAME_RULES_REGISTER.register(id, () -> new GameRule<>(category, GameRuleType.BOOL, BoolArgumentType.bool(), GameRuleTypeVisitor::visitBoolean, Codec.BOOL, b -> b ? 1 : 0, defaultValue, FeatureFlagSet.of()));
 	}
 
     private static final Pattern QUALIFIER = Pattern.compile("-\\w+\\+\\d+");
@@ -100,7 +114,7 @@ public class GamemodeBuild {
 		if (player.level().isClientSide()) {
 			return GBClientState.isActive();
 		} else {
-			return GBServerState.isActiveFor(player);
+			return GBPlayer.get(player).isEffectivelyActive();
 		}
 	}
 }
