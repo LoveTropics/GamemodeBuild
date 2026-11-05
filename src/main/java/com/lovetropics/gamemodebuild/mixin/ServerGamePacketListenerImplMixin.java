@@ -2,7 +2,7 @@ package com.lovetropics.gamemodebuild.mixin;
 
 import com.lovetropics.gamemodebuild.GBConfigs;
 import com.lovetropics.gamemodebuild.container.GBStackMarker;
-import com.lovetropics.gamemodebuild.state.GBPlayerStore;
+import com.lovetropics.gamemodebuild.state.GBPlayer;
 import com.lovetropics.gamemodebuild.state.GBServerState;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,7 +27,7 @@ public class ServerGamePacketListenerImplMixin {
     // Don't allow picking blocks with custom data when build mode is active.
     @ModifyVariable(method = "handlePickItemFromBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), name = "includeData")
     private boolean modifyFlag(boolean includeData) {
-        if (GBServerState.isActiveFor(player)) {
+        if (GBPlayer.get(player).isEffectivelyActive()) {
             return false;
         }
         return includeData;
@@ -35,13 +35,14 @@ public class ServerGamePacketListenerImplMixin {
 
     @Inject(method = "tryPickItem", at = @At(value = "HEAD"), cancellable = true)
     private void handlePickItemFromBlock(ItemStack itemStack, CallbackInfo ci) {
-        if (!GBServerState.isActiveFor(player)) {
+        GBPlayer buildPlayer = GBPlayer.get(player);
+        if (!buildPlayer.isEffectivelyActive()) {
             return;
         }
 
         FeatureFlagSet enabledFeatures = player.level().enabledFeatures();
         RegistryAccess registryAccess = player.level().registryAccess();
-        Predicate<ItemStack> predicate = GBConfigs.SERVER.getFilter(GBPlayerStore.getList(player)).getStackPredicate(enabledFeatures, registryAccess);
+        Predicate<ItemStack> predicate = GBConfigs.SERVER.getFilter(buildPlayer.getList()).getStackPredicate(enabledFeatures, registryAccess);
 
         if (!predicate.test(itemStack)) {
             ci.cancel();
