@@ -1,25 +1,36 @@
-name: Java CI with Gradle
+name: Build & Publish
 
-on: [push]
+on:
+  push:
+    branches:
+      - 'lt[0-9]+'
+  workflow_dispatch:
+
 jobs:
-
-  jdk21:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Setup JDK 25
+      - name: Setup JDK
         uses: actions/setup-java@v2
         with:
           java-version: '25'
           distribution: 'temurin'
 
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Validate Gradle Wrapper Integrity
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Build & Publish to Maven
+        env:
+          MAVEN_URL: ${{ secrets.LT_MAVEN_SNAPSHOTS_URL }}
+          MAVEN_USERNAME: ${{ secrets.LT_MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.LT_MAVEN_PASS }}
+        run: ./gradlew build publish
 
       - name: Locate built JARfile
         id: jar
