@@ -2,5 +2,8 @@
   "gamemodebuild.toast.build_mode": "Build Mode",
   "gamemodebuild.toast.build_mode.available": "Available (press %s)",
   "gamemodebuild.toast.build_mode.unavailable": "Unavailable",
-  "gamerule.gamemodebuild.enable_build_mode": "Enable Build Mode"
+  "gamerule.gamemodebuild.enable_build_mode": "Enable Build Mode",
+  "gui.gamemodebuild.build_mode": "Build mode",
+  "gui.gamemodebuild.build_mode.on": "Build mode: On",
+  "gui.gamemodebuild.build_mode.off": "Build mode: Off"
 }
